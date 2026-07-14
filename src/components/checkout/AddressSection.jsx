@@ -1,19 +1,18 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
 import { MapPin, Plus, ChevronDown, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import {
+  EMAIL_VALIDATION,
+  PHONE_VALIDATION,
+  NAME_VALIDATION,
+  PIN_CODE_VALIDATION,
+  REQUIRED_VALIDATION
+} from '../../utils/validation';
 
 export default function AddressSection({ onAddressSelect }) {
   const [selectedId, setSelectedId] = useState(1);
   const [formExpanded, setFormExpanded] = useState(false);
-  
-  // New address state fields
-  const [fullName, setFullName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [email, setEmail] = useState('');
-  const [street, setStreet] = useState('');
-  const [city, setCity] = useState('');
-  const [postal, setPostal] = useState('');
-  const [country, setCountry] = useState('United States');
 
   const [savedAddresses, setSavedAddresses] = useState([
     {
@@ -22,23 +21,48 @@ export default function AddressSection({ onAddressSelect }) {
       tag: 'HOME',
       street: '123 Neon Street, Sky-Tower 4',
       city: 'New City',
-      postal: '10001',
-      phone: '+1 (555) 000-1234',
+      postal: '100018', // 6 digits per spec
+      phone: '1234567890',
     },
   ]);
 
-  const handleSave = (e) => {
-    e.preventDefault();
-    if (!fullName || !phone || !street || !city || !postal) return;
+  const {
+    register,
+    handleSubmit,
+    setFocus,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm({
+    defaultValues: {
+      fullName: '',
+      phone: '',
+      email: '',
+      street: '',
+      city: '',
+      postal: '',
+      country: 'United States',
+    },
+  });
 
+  // Focus fullName when form is expanded
+  useEffect(() => {
+    if (formExpanded) {
+      setFocus('fullName');
+    }
+  }, [formExpanded, setFocus]);
+
+  const onSubmitAddress = async (data) => {
+    // Simulated delay
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    
     const newAddr = {
       id: savedAddresses.length + 1,
-      name: fullName,
+      name: data.fullName.trim(),
       tag: 'OTHER',
-      street,
-      city,
-      postal,
-      phone,
+      street: data.street.trim(),
+      city: data.city.trim(),
+      postal: data.postal,
+      phone: data.phone,
     };
 
     setSavedAddresses([...savedAddresses, newAddr]);
@@ -46,12 +70,11 @@ export default function AddressSection({ onAddressSelect }) {
     setFormExpanded(false);
     
     // Reset form fields
-    setFullName('');
-    setPhone('');
-    setEmail('');
-    setStreet('');
-    setCity('');
-    setPostal('');
+    reset();
+
+    if (onAddressSelect) {
+      onAddressSelect(newAddr);
+    }
   };
 
   const handleSelectAddress = (addr) => {
@@ -106,10 +129,8 @@ export default function AddressSection({ onAddressSelect }) {
 
                 {/* Actions */}
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 self-center">
-                  <button className="h-10 px-6 rounded-lg bg-gaming-border hover:bg-gaming-border-active text-white text-xs font-bold transition-all cursor-pointer">
-                    Edit
-                  </button>
                   <button
+                    type="button"
                     onClick={(e) => {
                       e.stopPropagation();
                       handleSelectAddress(addr);
@@ -134,8 +155,9 @@ export default function AddressSection({ onAddressSelect }) {
             Add New Address
           </div>
           <button
+            type="button"
             onClick={() => setFormExpanded(!formExpanded)}
-            className="text-xs font-semibold text-slate-500 hover:text-gaming-cyan transition-colors"
+            className="text-xs font-semibold text-slate-500 hover:text-gaming-cyan transition-colors cursor-pointer"
           >
             {formExpanded ? 'Collapse Form' : 'Expand Form'}
           </button>
@@ -148,8 +170,9 @@ export default function AddressSection({ onAddressSelect }) {
               animate={{ height: 'auto' }}
               exit={{ height: 0 }}
               transition={{ duration: 0.3 }}
-              onSubmit={handleSave}
+              onSubmit={handleSubmit(onSubmitAddress)}
               className="overflow-hidden rounded-2xl border border-gaming-border bg-gaming-card/20 p-6 space-y-5"
+              noValidate
             >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Full Name */}
@@ -157,24 +180,39 @@ export default function AddressSection({ onAddressSelect }) {
                   <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Full Name</label>
                   <input
                     type="text"
-                    required
                     placeholder="Enter your full name"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    className="w-full h-12 px-4 rounded-xl bg-gaming-black/60 border border-gaming-border text-sm text-slate-200 focus:outline-none focus:border-gaming-cyan/60 transition-all"
+                    aria-invalid={!!errors.fullName}
+                    aria-describedby={errors.fullName ? 'fullName-error' : undefined}
+                    className={`w-full h-12 px-4 rounded-xl bg-gaming-black/60 border text-sm text-slate-200 focus:outline-none transition-all ${
+                      errors.fullName ? 'border-red-500 focus:border-red-500' : 'border-gaming-border focus:border-gaming-cyan/60'
+                    }`}
+                    {...register('fullName', NAME_VALIDATION)}
                   />
+                  {errors.fullName && (
+                    <span id="fullName-error" className="text-[10px] text-red-500 font-semibold block pl-1 animate-pulse">
+                      {errors.fullName.message}
+                    </span>
+                  )}
                 </div>
+
                 {/* Phone */}
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Phone Number</label>
                   <input
                     type="text"
-                    required
-                    placeholder="+1 (000) 000-0000"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    className="w-full h-12 px-4 rounded-xl bg-gaming-black/60 border border-gaming-border text-sm text-slate-200 focus:outline-none focus:border-gaming-cyan/60 transition-all"
+                    placeholder="10-digit number"
+                    aria-invalid={!!errors.phone}
+                    aria-describedby={errors.phone ? 'phone-error' : undefined}
+                    className={`w-full h-12 px-4 rounded-xl bg-gaming-black/60 border text-sm text-slate-200 focus:outline-none transition-all ${
+                      errors.phone ? 'border-red-500 focus:border-red-500' : 'border-gaming-border focus:border-gaming-cyan/60'
+                    }`}
+                    {...register('phone', PHONE_VALIDATION)}
                   />
+                  {errors.phone && (
+                    <span id="phone-error" className="text-[10px] text-red-500 font-semibold block pl-1 animate-pulse">
+                      {errors.phone.message}
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -183,12 +221,19 @@ export default function AddressSection({ onAddressSelect }) {
                 <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Email Address</label>
                 <input
                   type="email"
-                  required
                   placeholder="gamer@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full h-12 px-4 rounded-xl bg-gaming-black/60 border border-gaming-border text-sm text-slate-200 focus:outline-none focus:border-gaming-cyan/60 transition-all"
+                  aria-invalid={!!errors.email}
+                  aria-describedby={errors.email ? 'email-error' : undefined}
+                  className={`w-full h-12 px-4 rounded-xl bg-gaming-black/60 border text-sm text-slate-200 focus:outline-none transition-all ${
+                    errors.email ? 'border-red-500 focus:border-red-500' : 'border-gaming-border focus:border-gaming-cyan/60'
+                  }`}
+                  {...register('email', EMAIL_VALIDATION)}
                 />
+                {errors.email && (
+                  <span id="email-error" className="text-[10px] text-red-500 font-semibold block pl-1 animate-pulse">
+                    {errors.email.message}
+                  </span>
+                )}
               </div>
 
               {/* Street Address */}
@@ -196,12 +241,19 @@ export default function AddressSection({ onAddressSelect }) {
                 <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Street Address</label>
                 <input
                   type="text"
-                  required
                   placeholder="House number and street name"
-                  value={street}
-                  onChange={(e) => setStreet(e.target.value)}
-                  className="w-full h-12 px-4 rounded-xl bg-gaming-black/60 border border-gaming-border text-sm text-slate-200 focus:outline-none focus:border-gaming-cyan/60 transition-all"
+                  aria-invalid={!!errors.street}
+                  aria-describedby={errors.street ? 'street-error' : undefined}
+                  className={`w-full h-12 px-4 rounded-xl bg-gaming-black/60 border text-sm text-slate-200 focus:outline-none transition-all ${
+                    errors.street ? 'border-red-500 focus:border-red-500' : 'border-gaming-border focus:border-gaming-cyan/60'
+                  }`}
+                  {...register('street', REQUIRED_VALIDATION('Street address'))}
                 />
+                {errors.street && (
+                  <span id="street-error" className="text-[10px] text-red-500 font-semibold block pl-1 animate-pulse">
+                    {errors.street.message}
+                  </span>
+                )}
               </div>
 
               <div className="grid grid-cols-3 gap-4">
@@ -210,33 +262,48 @@ export default function AddressSection({ onAddressSelect }) {
                   <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">City</label>
                   <input
                     type="text"
-                    required
                     placeholder="City"
-                    value={city}
-                    onChange={(e) => setCity(e.target.value)}
-                    className="w-full h-12 px-4 rounded-xl bg-gaming-black/60 border border-gaming-border text-sm text-slate-200 focus:outline-none focus:border-gaming-cyan/60 transition-all"
+                    aria-invalid={!!errors.city}
+                    aria-describedby={errors.city ? 'city-error' : undefined}
+                    className={`w-full h-12 px-4 rounded-xl bg-gaming-black/60 border text-sm text-slate-200 focus:outline-none transition-all ${
+                      errors.city ? 'border-red-500 focus:border-red-500' : 'border-gaming-border focus:border-gaming-cyan/60'
+                    }`}
+                    {...register('city', REQUIRED_VALIDATION('City'))}
                   />
+                  {errors.city && (
+                    <span id="city-error" className="text-[10px] text-red-500 font-semibold block pl-1 animate-pulse">
+                      {errors.city.message}
+                    </span>
+                  )}
                 </div>
-                {/* Postal Code */}
+
+                {/* Postal Code (6 digits Pin Code per spec) */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Postal Code</label>
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">PIN / Postal Code</label>
                   <input
                     type="text"
-                    required
-                    placeholder="10001"
-                    value={postal}
-                    onChange={(e) => setPostal(e.target.value)}
-                    className="w-full h-12 px-4 rounded-xl bg-gaming-black/60 border border-gaming-border text-sm text-slate-200 focus:outline-none focus:border-gaming-cyan/60 transition-all"
+                    placeholder="6-digit code"
+                    aria-invalid={!!errors.postal}
+                    aria-describedby={errors.postal ? 'postal-error' : undefined}
+                    className={`w-full h-12 px-4 rounded-xl bg-gaming-black/60 border text-sm text-slate-200 focus:outline-none transition-all ${
+                      errors.postal ? 'border-red-500 focus:border-red-500' : 'border-gaming-border focus:border-gaming-cyan/60'
+                    }`}
+                    {...register('postal', PIN_CODE_VALIDATION)}
                   />
+                  {errors.postal && (
+                    <span id="postal-error" className="text-[10px] text-red-500 font-semibold block pl-1 animate-pulse">
+                      {errors.postal.message}
+                    </span>
+                  )}
                 </div>
+
                 {/* Country */}
                 <div className="col-span-3 sm:col-span-1 space-y-1.5">
                   <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Country</label>
                   <div className="relative">
                     <select
-                      value={country}
-                      onChange={(e) => setCountry(e.target.value)}
                       className="w-full h-12 px-4 pr-10 rounded-xl bg-gaming-black/60 border border-gaming-border text-sm text-slate-200 focus:outline-none focus:border-gaming-cyan/60 transition-all appearance-none cursor-pointer"
+                      {...register('country', REQUIRED_VALIDATION('Country'))}
                     >
                       <option value="United States">United States</option>
                       <option value="Canada">Canada</option>
@@ -252,9 +319,10 @@ export default function AddressSection({ onAddressSelect }) {
               <div className="flex justify-end pt-3">
                 <button
                   type="submit"
-                  className="h-11 px-8 rounded-lg bg-gaming-border hover:bg-gaming-border-active text-white text-xs font-bold transition-all cursor-pointer"
+                  disabled={isSubmitting}
+                  className="h-11 px-8 rounded-lg bg-gaming-border hover:bg-gaming-cyan hover:text-gaming-black text-white text-xs font-bold transition-all cursor-pointer disabled:opacity-40"
                 >
-                  Save Address
+                  {isSubmitting ? 'Saving Address...' : 'Save Address'}
                 </button>
               </div>
 

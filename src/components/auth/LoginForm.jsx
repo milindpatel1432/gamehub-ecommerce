@@ -1,48 +1,51 @@
-import { useState } from 'react';
+import { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
 import { Mail, ArrowRight } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import PasswordInput from './PasswordInput';
 import SocialLogin from './SocialLogin';
+import { successToast, errorToast } from '../../utils/toast';
+import { EMAIL_VALIDATION, PASSWORD_VALIDATION } from '../../utils/validation';
 
 export default function LoginForm() {
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(false);
-  const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const {
+    register,
+    handleSubmit,
+    setFocus,
+    formState: { errors, isSubmitting },
+  } = useForm({
+    defaultValues: {
+      email: '',
+      password: '',
+      rememberMe: false,
+    },
+  });
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setIsLoading(true);
+  // Focus the first invalid field on initial mount (focus email field)
+  useEffect(() => {
+    setFocus('email');
+  }, [setFocus]);
 
+  const onSubmit = async (data) => {
     // Simulated short delay
-    setTimeout(() => {
-      const res = login(email, password);
-      setIsLoading(false);
-      if (res.success) {
-        navigate('/dashboard');
-      } else {
-        setError(res.error);
-      }
-    }, 600);
+    await new Promise((resolve) => setTimeout(resolve, 600));
+    const res = login(data.email, data.password);
+    if (res.success) {
+      successToast('Welcome back! Logged in successfully.');
+      navigate('/dashboard');
+    } else {
+      errorToast(res.error);
+    }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Error alert wrapper */}
-      {error && (
-        <div className="p-3.5 rounded-xl border border-red-500/20 bg-red-500/5 text-xs text-red-500 font-semibold tracking-wide animate-pulse">
-          {error}
-        </div>
-      )}
-
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
       {/* Email input field */}
-      <div className="space-y-2 text-left">
+      <div className="space-y-1.5 text-left">
         <label htmlFor="email" className="block text-xs font-bold text-slate-400 uppercase tracking-wider">
           Email Address
         </label>
@@ -52,22 +55,29 @@ export default function LoginForm() {
           </div>
           <input
             type="email"
-            name="email"
             id="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
             placeholder="gaming@gamehub.com"
-            required
-            className="block h-12 w-full pl-11 pr-4 rounded-xl bg-gaming-black/60 border border-gaming-border text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-gaming-cyan/60 focus:ring-0 transition-all"
+            aria-invalid={!!errors.email}
+            aria-describedby={errors.email ? 'email-error' : undefined}
+            className={`block h-12 w-full pl-11 pr-4 rounded-xl bg-gaming-black/60 border text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-0 transition-all ${
+              errors.email ? 'border-red-500 focus:border-red-500' : 'border-gaming-border focus:border-gaming-cyan/60'
+            }`}
+            {...register('email', EMAIL_VALIDATION)}
           />
         </div>
+        {errors.email && (
+          <span id="email-error" className="text-[10px] text-red-500 font-semibold tracking-wide block pl-1 animate-pulse">
+            {errors.email.message}
+          </span>
+        )}
       </div>
 
       {/* Password input field */}
       <PasswordInput
         label="Password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
+        id="password"
+        error={errors.password}
+        registration={register('password', PASSWORD_VALIDATION)}
       />
 
       {/* Remember Me & Forgot Password links */}
@@ -75,9 +85,8 @@ export default function LoginForm() {
         <label className="flex items-center gap-2 text-slate-400 cursor-pointer hover:text-slate-300 transition-colors">
           <input
             type="checkbox"
-            checked={rememberMe}
-            onChange={(e) => setRememberMe(e.target.checked)}
             className="h-4 w-4 rounded border-gaming-border bg-gaming-black text-gaming-cyan focus:ring-0 focus:ring-offset-0 cursor-pointer"
+            {...register('rememberMe')}
           />
           <span>Remember Me</span>
         </label>
@@ -92,11 +101,11 @@ export default function LoginForm() {
       {/* Login Action Trigger CTA */}
       <button
         type="submit"
-        disabled={isLoading}
+        disabled={isSubmitting}
         className="w-full h-12 rounded-full bg-gaming-cyan hover:bg-gaming-accent text-gaming-black hover:text-white font-bold text-xs tracking-wider flex items-center justify-center gap-2 transition-all duration-300 shadow-[0_0_20px_rgba(0,229,255,0.2)] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
       >
-        {isLoading ? 'Verifying Account...' : 'Sign In'}
-        {!isLoading && <ArrowRight className="h-4 w-4" />}
+        {isSubmitting ? 'Verifying Account...' : 'Sign In'}
+        {!isSubmitting && <ArrowRight className="h-4 w-4" />}
       </button>
 
       {/* Social login buttons wrapper */}

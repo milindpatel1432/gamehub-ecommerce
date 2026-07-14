@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useWishlist } from '../../context/WishlistContext';
+import { useCart } from '../../context/CartContext';
+import { successToast } from '../../utils/toast';
 import {
   LayoutDashboard,
   ShoppingBag,
@@ -26,12 +28,14 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { wishlistItems, removeFromWishlist } = useWishlist();
+  const { addToCart } = useCart();
 
   const [activeTab, setActiveTab] = useState('overview'); // overview, orders, rentals, wishlist, profile, settings
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
+    successToast('Logged out successfully.');
     navigate('/');
   };
 
@@ -325,14 +329,33 @@ export default function Dashboard() {
                             <p className="text-[10px] text-slate-500 mt-0.5">{item.platform || 'Digital'}</p>
                           </div>
                         </div>
-                        <div className="flex items-center justify-between pt-2 border-t border-gaming-border/30">
+                        <div className="flex items-center justify-between pt-2 border-t border-gaming-border/30 gap-2">
                           <span className="font-gaming text-xs font-extrabold text-gaming-cyan">${item.buyPrice?.toFixed(2)}</span>
-                          <button
-                            onClick={() => removeFromWishlist(item.id)}
-                            className="text-[10px] font-bold text-red-500 hover:underline cursor-pointer"
-                          >
-                            Remove
-                          </button>
+                          <div className="flex items-center gap-3.5">
+                            <button
+                              onClick={() => {
+                                addToCart({
+                                  id: item.id,
+                                  title: item.title,
+                                  platform: item.platform || 'PS5',
+                                  buyPrice: item.buyPrice,
+                                  image: item.image,
+                                  category: item.category || 'Games',
+                                });
+                                removeFromWishlist(item.id);
+                                successToast(`Moved ${item.title} to shopping cart!`);
+                              }}
+                              className="h-8 px-3.5 rounded-xl bg-gaming-cyan hover:bg-gaming-accent text-gaming-black hover:text-white font-bold text-[10px] transition-all duration-300 cursor-pointer"
+                            >
+                              Move to Cart
+                            </button>
+                            <button
+                              onClick={() => removeFromWishlist(item.id)}
+                              className="text-[10px] font-bold text-red-500 hover:underline cursor-pointer"
+                            >
+                              Remove
+                            </button>
+                          </div>
                         </div>
                       </div>
                     ))}

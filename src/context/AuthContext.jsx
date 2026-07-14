@@ -12,6 +12,7 @@ export function AuthProvider({ children }) {
       email: 'marcus@gamehub.com',
       phone: '+15550001234',
       password: 'Password123',
+      address: '123 Neon Street, Sky-Tower 4',
     },
   ]);
 
@@ -25,6 +26,7 @@ export function AuthProvider({ children }) {
         username: matched.username,
         email: matched.email,
         phone: matched.phone,
+        address: matched.address || '',
       });
       return { success: true };
     }
@@ -43,10 +45,23 @@ export function AuthProvider({ children }) {
     if (exists) {
       return { success: false, error: 'Email or Username is already registered.' };
     }
-    const newUser = { fullName, username, email, phone, password };
+    const newUser = { fullName, username, email, phone, password, address: '' };
     setRegisteredUsers((prev) => [...prev, newUser]);
     // Log them in immediately
-    setUser({ fullName, username, email, phone });
+    setUser({ fullName, username, email, phone, address: '' });
+    return { success: true };
+  };
+
+  const updateProfile = (updatedData) => {
+    setUser((prev) => {
+      if (!prev) return null;
+      const updated = { ...prev, ...updatedData };
+      // Also update registeredUsers list for consistency
+      setRegisteredUsers((prevUsers) =>
+        prevUsers.map((u) => (u.email.toLowerCase() === prev.email.toLowerCase() ? { ...u, ...updatedData } : u))
+      );
+      return updated;
+    });
     return { success: true };
   };
 
@@ -58,6 +73,7 @@ export function AuthProvider({ children }) {
         login,
         logout,
         register,
+        updateProfile,
       }}
     >
       {children}

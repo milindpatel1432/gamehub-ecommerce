@@ -1,15 +1,33 @@
-import { Link, useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, ShoppingBag, Heart } from 'lucide-react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { ChevronLeft, ChevronRight, ShoppingBag, Heart, Gamepad } from 'lucide-react';
 import ProductGallery from '../../components/product/ProductGallery';
 import ProductTabs from '../../components/product/ProductTabs';
 import ProductInfoPanel from '../../components/product/ProductInfoPanel';
 import ProductFAQ from '../../components/product/ProductFAQ';
-import { relatedProducts } from '../../data/games';
+import { relatedProducts, shopProducts } from '../../data/games';
 import { useWishlist } from '../../context/WishlistContext';
+import EmptyState from '../../components/ui/EmptyState';
 
 export default function ProductDetails() {
+  const { id } = useParams();
   const navigate = useNavigate();
   const { isWishlisted, addToWishlist, removeFromWishlist } = useWishlist();
+
+  const productExists = shopProducts.some((p) => p.id === parseInt(id));
+
+  if (id && !productExists) {
+    return (
+      <div className="w-full bg-gaming-dark py-16 px-4 flex items-center justify-center min-h-[70vh]">
+        <EmptyState
+          icon={Gamepad}
+          title="Product Not Found"
+          description="The gaming equipment or titles you requested coordinates for do not exist."
+          actionText="Back to Shop"
+          onAction={() => navigate('/shop')}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="w-full bg-gaming-dark py-12 px-4 sm:px-6 lg:px-8">

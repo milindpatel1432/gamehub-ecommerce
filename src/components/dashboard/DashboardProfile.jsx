@@ -1,18 +1,61 @@
-import { useState } from 'react';
-import { User, Mail, Phone, ShieldCheck, Sparkles } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { User, Mail, Phone, MapPin, Sparkles } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import { successToast } from '../../utils/toast';
+import {
+  EMAIL_VALIDATION,
+  PHONE_VALIDATION,
+  NAME_VALIDATION,
+  REQUIRED_VALIDATION
+} from '../../utils/validation';
 
-export default function DashboardProfile({ user }) {
+export default function DashboardProfile() {
+  const { user, updateProfile } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState({
-    fullName: user?.fullName || 'Marcus Thorne',
-    email: user?.email || 'marcus@gamehub.com',
-    phone: user?.phone || '+1 (555) 000-1234',
+
+  const {
+    register,
+    handleSubmit,
+    setFocus,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm({
+    defaultValues: {
+      fullName: user?.fullName || '',
+      username: user?.username || '',
+      email: user?.email || '',
+      phone: user?.phone || '',
+      address: user?.address || '',
+    },
   });
 
-  const handleSave = (e) => {
-    e.preventDefault();
+  // Focus fullName on toggling edit mode
+  useEffect(() => {
+    if (isEditing) {
+      setFocus('fullName');
+    }
+  }, [isEditing, setFocus]);
+
+  // Keep form synced with user updates
+  useEffect(() => {
+    if (user) {
+      reset({
+        fullName: user.fullName || '',
+        username: user.username || '',
+        email: user.email || '',
+        phone: user.phone || '',
+        address: user.address || '',
+      });
+    }
+  }, [user, reset]);
+
+  const onSubmit = async (data) => {
+    // Simulated short delay
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    updateProfile(data);
     setIsEditing(false);
-    alert('Simulated profile update saved successfully!');
+    successToast('Profile updated successfully!');
   };
 
   return (
@@ -30,7 +73,7 @@ export default function DashboardProfile({ user }) {
         {/* Avatar badge */}
         <div className="relative">
           <div className="w-20 h-20 rounded-full border border-gaming-cyan bg-gaming-cyan/10 flex items-center justify-center font-gaming text-3xl font-extrabold text-gaming-cyan shadow-[0_0_20px_rgba(0,229,255,0.25)]">
-            {formData.fullName.charAt(0).toUpperCase()}
+            {user?.fullName ? user.fullName.charAt(0).toUpperCase() : 'G'}
           </div>
           <span className="absolute bottom-0 right-0 p-1.5 rounded-full bg-gaming-cyan text-gaming-black">
             <Sparkles className="h-3 w-3 animate-spin-slow" />
@@ -38,46 +81,121 @@ export default function DashboardProfile({ user }) {
         </div>
         
         <div className="text-center sm:text-left">
-          <h4 className="font-gaming text-lg font-bold text-white tracking-wide">{formData.fullName}</h4>
+          <h4 className="font-gaming text-lg font-bold text-white tracking-wide">{user?.fullName || 'Marcus Thorne'}</h4>
           <span className="text-[10px] text-gaming-cyan font-bold uppercase tracking-widest bg-gaming-cyan/10 px-2.5 py-0.5 rounded-full mt-1 inline-block border border-gaming-cyan/20">
             Elite Tier Pro
           </span>
         </div>
       </div>
 
-      <form onSubmit={handleSave} className="space-y-4 pt-2">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-2" noValidate>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="space-y-2">
+          {/* Full Name */}
+          <div className="space-y-1.5">
             <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Full Name</label>
             <input
               type="text"
-              value={formData.fullName}
               disabled={!isEditing}
-              onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-              className="block h-12 w-full px-4 rounded-xl bg-gaming-black/60 border border-gaming-border text-sm text-slate-200 focus:outline-none focus:border-gaming-cyan/60 disabled:opacity-50 transition-all"
+              aria-invalid={!!errors.fullName}
+              aria-describedby={errors.fullName ? 'fullName-error' : undefined}
+              className={`block h-12 w-full px-4 rounded-xl bg-gaming-black/60 border text-sm text-slate-200 focus:outline-none transition-all disabled:opacity-50 ${
+                errors.fullName ? 'border-red-500' : 'border-gaming-border focus:border-gaming-cyan/60'
+              }`}
+              {...register('fullName', NAME_VALIDATION)}
             />
+            {errors.fullName && (
+              <span id="fullName-error" className="text-[10px] text-red-500 font-semibold block pl-1 animate-pulse">
+                {errors.fullName.message}
+              </span>
+            )}
           </div>
-          <div className="space-y-2">
-            <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Email Address</label>
+
+          {/* Username */}
+          <div className="space-y-1.5">
+            <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Username</label>
             <input
-              type="email"
-              value={formData.email}
+              type="text"
               disabled={!isEditing}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="block h-12 w-full px-4 rounded-xl bg-gaming-black/60 border border-gaming-border text-sm text-slate-200 focus:outline-none focus:border-gaming-cyan/60 disabled:opacity-50 transition-all"
+              aria-invalid={!!errors.username}
+              aria-describedby={errors.username ? 'username-error' : undefined}
+              className={`block h-12 w-full px-4 rounded-xl bg-gaming-black/60 border text-sm text-slate-200 focus:outline-none transition-all disabled:opacity-50 ${
+                errors.username ? 'border-red-500' : 'border-gaming-border focus:border-gaming-cyan/60'
+              }`}
+              {...register('username', REQUIRED_VALIDATION('Username'))}
             />
+            {errors.username && (
+              <span id="username-error" className="text-[10px] text-red-500 font-semibold block pl-1 animate-pulse">
+                {errors.username.message}
+              </span>
+            )}
           </div>
         </div>
 
-        <div className="space-y-2">
-          <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Phone Number</label>
-          <input
-            type="tel"
-            value={formData.phone}
-            disabled={!isEditing}
-            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-            className="block h-12 w-full px-4 rounded-xl bg-gaming-black/60 border border-gaming-border text-sm text-slate-200 focus:outline-none focus:border-gaming-cyan/60 disabled:opacity-50 transition-all"
-          />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Email Address */}
+          <div className="space-y-1.5">
+            <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Email Address</label>
+            <input
+              type="email"
+              disabled={!isEditing}
+              aria-invalid={!!errors.email}
+              aria-describedby={errors.email ? 'email-error' : undefined}
+              className={`block h-12 w-full px-4 rounded-xl bg-gaming-black/60 border text-sm text-slate-200 focus:outline-none transition-all disabled:opacity-50 ${
+                errors.email ? 'border-red-500' : 'border-gaming-border focus:border-gaming-cyan/60'
+              }`}
+              {...register('email', EMAIL_VALIDATION)}
+            />
+            {errors.email && (
+              <span id="email-error" className="text-[10px] text-red-500 font-semibold block pl-1 animate-pulse">
+                {errors.email.message}
+              </span>
+            )}
+          </div>
+
+          {/* Phone Number */}
+          <div className="space-y-1.5">
+            <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Phone Number</label>
+            <input
+              type="tel"
+              disabled={!isEditing}
+              aria-invalid={!!errors.phone}
+              aria-describedby={errors.phone ? 'phone-error' : undefined}
+              className={`block h-12 w-full px-4 rounded-xl bg-gaming-black/60 border text-sm text-slate-200 focus:outline-none transition-all disabled:opacity-50 ${
+                errors.phone ? 'border-red-500' : 'border-gaming-border focus:border-gaming-cyan/60'
+              }`}
+              {...register('phone', PHONE_VALIDATION)}
+            />
+            {errors.phone && (
+              <span id="phone-error" className="text-[10px] text-red-500 font-semibold block pl-1 animate-pulse">
+                {errors.phone.message}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Address */}
+        <div className="space-y-1.5">
+          <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Delivery Address</label>
+          <div className="relative rounded-xl shadow-sm">
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+              <MapPin className="h-4 w-4 text-slate-500" />
+            </div>
+            <input
+              type="text"
+              disabled={!isEditing}
+              aria-invalid={!!errors.address}
+              aria-describedby={errors.address ? 'address-error' : undefined}
+              className={`block h-12 w-full pl-11 pr-4 rounded-xl bg-gaming-black/60 border text-sm text-slate-200 focus:outline-none transition-all disabled:opacity-50 ${
+                errors.address ? 'border-red-500' : 'border-gaming-border focus:border-gaming-cyan/60'
+              }`}
+              {...register('address', REQUIRED_VALIDATION('Address'))}
+            />
+          </div>
+          {errors.address && (
+            <span id="address-error" className="text-[10px] text-red-500 font-semibold block pl-1 animate-pulse">
+              {errors.address.message}
+            </span>
+          )}
         </div>
 
         <div className="pt-2 flex justify-end">
@@ -92,9 +210,10 @@ export default function DashboardProfile({ user }) {
               </button>
               <button
                 type="submit"
-                className="h-10 px-6 rounded-full bg-gaming-cyan hover:bg-gaming-accent text-gaming-black hover:text-white font-bold text-xs transition-colors cursor-pointer"
+                disabled={isSubmitting}
+                className="h-10 px-6 rounded-full bg-gaming-cyan hover:bg-gaming-accent text-gaming-black hover:text-white font-bold text-xs transition-colors cursor-pointer disabled:opacity-40"
               >
-                Save Profile
+                {isSubmitting ? 'Saving...' : 'Save Profile'}
               </button>
             </div>
           ) : (

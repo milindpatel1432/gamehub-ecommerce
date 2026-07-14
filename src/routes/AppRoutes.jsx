@@ -10,7 +10,11 @@ import Login from '../pages/Auth/Login';
 import Register from '../pages/Auth/Register';
 import ForgotPassword from '../pages/Auth/ForgotPassword';
 import Dashboard from '../pages/Dashboard/Dashboard';
+import AdminDashboard from '../pages/Admin/AdminDashboard';
 import ProtectedRoute from './ProtectedRoute';
+import PageNotFound from '../pages/Error/PageNotFound';
+import Unauthorized from '../pages/Error/Unauthorized';
+import ServerError from '../pages/Error/ServerError';
 
 export default function AppRoutes() {
   return (
@@ -33,8 +37,11 @@ export default function AppRoutes() {
           </ProtectedRoute>
         }
       />
+      <Route path="/admin" element={<AdminDashboard />} />
+      <Route path="/unauthorized" element={<Unauthorized />} />
+      <Route path="/server-error" element={<ServerError />} />
       {/* Fallback route */}
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
 }

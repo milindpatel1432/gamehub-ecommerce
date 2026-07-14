@@ -1,4 +1,4 @@
-import { Calendar } from 'lucide-react';
+import { Calendar, ShieldCheck, Activity } from 'lucide-react';
 
 export default function DashboardRentals() {
   const rentals = [
@@ -7,8 +7,10 @@ export default function DashboardRentals() {
       title: 'Cyber Odyssey 2077',
       platform: 'PS5',
       image: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=200&auto=format&fit=crop&q=80',
+      rentalStart: 'Oct 25, 2026',
       endDate: 'Nov 1, 2026',
       daysRemaining: 7,
+      status: 'Active',
     },
   ];
 
@@ -37,14 +39,24 @@ export default function DashboardRentals() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between sm:justify-end gap-6 text-right">
-              <div className="space-y-0.5">
-                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Return Date</span>
-                <span className="text-xs font-semibold text-white">{rental.endDate}</span>
+            <div className="grid grid-cols-2 sm:flex items-center justify-between sm:justify-end gap-6 text-right text-xs">
+              <div className="space-y-0.5 text-left sm:text-right">
+                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Rental Start</span>
+                <span className="font-semibold text-slate-400">{rental.rentalStart}</span>
               </div>
               <div className="space-y-0.5">
+                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Rental End</span>
+                <span className="font-semibold text-white">{rental.endDate}</span>
+              </div>
+              <div className="space-y-0.5 text-left sm:text-right">
                 <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Remaining</span>
-                <span className="text-xs font-bold text-gaming-cyan">{rental.daysRemaining} Days</span>
+                <span className="font-bold text-gaming-cyan">{rental.daysRemaining} Days</span>
+              </div>
+              <div className="space-y-0.5">
+                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Status</span>
+                <span className="text-[10px] uppercase font-bold tracking-wider text-green-400 bg-green-500/10 border border-green-500/25 rounded px-2.5 py-0.5 inline-block">
+                  {rental.status}
+                </span>
               </div>
             </div>
           </div>

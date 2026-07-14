@@ -8,6 +8,7 @@ import DeliverySection from '../../components/checkout/DeliverySection';
 import PaymentSection from '../../components/checkout/PaymentSection';
 import OrderSummarySidebar from '../../components/checkout/OrderSummarySidebar';
 import { useCart } from '../../context/CartContext';
+import { successToast } from '../../utils/toast';
 
 export default function Checkout() {
   const navigate = useNavigate();
@@ -45,7 +46,8 @@ export default function Checkout() {
           total: getCartTotal(),
         },
       });
-      clearCart();
+      clearCart(true);
+      successToast('Order placed successfully!');
     } else {
       setStep(step + 1);
     }

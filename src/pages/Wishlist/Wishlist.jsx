@@ -1,14 +1,25 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { Trash2, ShoppingCart, Heart, ArrowRight } from 'lucide-react';
 import { useWishlist } from '../../context/WishlistContext';
+import { useCart } from '../../context/CartContext';
+import { successToast } from '../../utils/toast';
 
 export default function Wishlist() {
   const navigate = useNavigate();
   const { wishlistItems, removeFromWishlist } = useWishlist();
+  const { addToCart } = useCart();
 
   const handleMoveToCart = (item) => {
-    // Add to cart logic can be simulated by triggering cart alert or redirecting to cart page
+    addToCart({
+      id: item.id,
+      title: item.title,
+      platform: item.platform || 'PS5',
+      buyPrice: item.buyPrice,
+      image: item.image,
+      category: item.category || 'Games',
+    });
     removeFromWishlist(item.id);
+    successToast(`Moved ${item.title} to shopping cart!`);
     navigate('/cart');
   };
 

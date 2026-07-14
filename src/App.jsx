@@ -5,6 +5,7 @@ import AppRoutes from './routes/AppRoutes';
 import { WishlistProvider } from './context/WishlistContext';
 import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext';
+import { Toaster } from 'react-hot-toast';
 
 function App() {
   return (
@@ -13,6 +14,12 @@ function App() {
         <WishlistProvider>
           <Router>
             <div className="flex flex-col min-h-screen bg-gaming-dark text-slate-200 antialiased font-sans">
+              <Toaster
+                position="top-right"
+                toastOptions={{
+                  duration: 3000,
+                }}
+              />
               {/* Navigation Bar */}
               <Navbar />
 

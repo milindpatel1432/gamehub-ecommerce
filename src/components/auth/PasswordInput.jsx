@@ -3,17 +3,15 @@ import { Eye, EyeOff, Lock } from 'lucide-react';
 
 export default function PasswordInput({
   label,
-  value,
-  onChange,
   placeholder = '••••••••',
-  name = 'password',
   id = 'password',
-  required = true,
+  registration = {},
+  error = null,
 }) {
   const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <div className="space-y-2 text-left">
+    <div className="space-y-1.5 text-left">
       {label && (
         <label htmlFor={id} className="block text-xs font-bold text-slate-400 uppercase tracking-wider">
           {label}
@@ -25,13 +23,14 @@ export default function PasswordInput({
         </div>
         <input
           type={showPassword ? 'text' : 'password'}
-          name={name}
           id={id}
-          value={value}
-          onChange={onChange}
           placeholder={placeholder}
-          required={required}
-          className="block h-12 w-full pl-11 pr-12 rounded-xl bg-gaming-black/60 border border-gaming-border text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-gaming-cyan/60 focus:ring-0 transition-all"
+          aria-invalid={!!error}
+          aria-describedby={error ? `${id}-error` : undefined}
+          className={`block h-12 w-full pl-11 pr-12 rounded-xl bg-gaming-black/60 border text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-0 transition-all ${
+            error ? 'border-red-500 focus:border-red-500' : 'border-gaming-border focus:border-gaming-cyan/60'
+          }`}
+          {...registration}
         />
         <button
           type="button"
@@ -41,6 +40,11 @@ export default function PasswordInput({
           {showPassword ? <EyeOff className="h-4.5 w-4.5" /> : <Eye className="h-4.5 w-4.5" />}
         </button>
       </div>
+      {error && (
+        <span id={`${id}-error`} className="text-[10px] text-red-500 font-semibold tracking-wide block pl-1 animate-pulse">
+          {error.message}
+        </span>
+      )}
     </div>
   );
 }

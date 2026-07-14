@@ -1,4 +1,5 @@
 import { createContext, useContext, useState } from 'react';
+import { successToast, infoToast } from '../utils/toast';
 
 const CartContext = createContext(null);
 
@@ -37,10 +38,12 @@ export function CartProvider({ children }) {
     setCartItems((prevItems) => {
       const existing = prevItems.find((item) => item.id === product.id);
       if (existing) {
+        successToast(`Increased quantity of ${product.title}`);
         return prevItems.map((item) =>
           item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
         );
       }
+      successToast(`${product.title} added to cart!`);
       return [
         ...prevItems,
         {
@@ -55,7 +58,13 @@ export function CartProvider({ children }) {
   };
 
   const removeFromCart = (id) => {
-    setCartItems((prevItems) => prevItems.filter((item) => item.id !== id));
+    setCartItems((prevItems) => {
+      const item = prevItems.find((i) => i.id === id);
+      if (item) {
+        infoToast(`${item.title} removed from cart.`);
+      }
+      return prevItems.filter((item) => item.id !== id);
+    });
   };
 
   const updateQuantity = (id, quantity) => {
@@ -63,15 +72,23 @@ export function CartProvider({ children }) {
       removeFromCart(id);
       return;
     }
-    setCartItems((prevItems) =>
-      prevItems.map((item) =>
+    setCartItems((prevItems) => {
+      const updated = prevItems.map((item) =>
         item.id === id ? { ...item, quantity } : item
-      )
-    );
+      );
+      const item = updated.find((i) => i.id === id);
+      if (item) {
+        infoToast(`Updated ${item.title} quantity to ${quantity}`);
+      }
+      return updated;
+    });
   };
 
-  const clearCart = () => {
+  const clearCart = (silent = false) => {
     setCartItems([]);
+    if (!silent) {
+      infoToast('Shopping cart cleared.');
+    }
   };
 
   const getCartTotal = () => {
