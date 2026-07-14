@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Search, Heart, ShoppingBag, User, Menu, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
@@ -14,6 +14,19 @@ export default function Navbar() {
   const { isAuthenticated, user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
+
+  // Close mobile drawer on Escape keypress
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setIsOpen(false);
+      }
+    };
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen]);
 
   const links = [
     { name: 'Games', href: '/shop' },
@@ -113,7 +126,9 @@ export default function Navbar() {
             </Link>
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="text-slate-300 hover:text-gaming-cyan focus:outline-none"
+              aria-expanded={isOpen}
+              aria-label="Toggle mobile navigation menu"
+              className="text-slate-300 hover:text-gaming-cyan focus:outline-none focus-visible:ring-2 focus-visible:ring-gaming-cyan rounded"
             >
               {isOpen ? <X className="h-6.5 w-6.5" /> : <Menu className="h-6.5 w-6.5" />}
             </button>

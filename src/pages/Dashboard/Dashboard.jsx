@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useWishlist } from '../../context/WishlistContext';
@@ -39,6 +39,19 @@ export default function Dashboard() {
     navigate('/');
   };
 
+  // Close mobile menu drawer on Escape keypress
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setMobileMenuOpen(false);
+      }
+    };
+    if (mobileMenuOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [mobileMenuOpen]);
+
   const menuItems = [
     { id: 'overview', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'orders', label: 'My Orders', icon: ShoppingBag },
@@ -59,7 +72,9 @@ export default function Dashboard() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => setMobileMenuOpen(true)}
-              className="p-2 rounded-lg bg-gaming-card border border-gaming-border text-white cursor-pointer"
+              aria-expanded={mobileMenuOpen}
+              aria-label="Toggle user dashboard panel sidebar menu"
+              className="p-2 rounded-lg bg-gaming-card border border-gaming-border text-white cursor-pointer focus-visible:ring-2 focus-visible:ring-gaming-cyan"
             >
               <Menu className="h-5 w-5" />
             </button>

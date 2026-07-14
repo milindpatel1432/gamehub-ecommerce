@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Search, Plus, Edit2, Trash2, X, Gamepad } from 'lucide-react';
 import { shopProducts } from '../../data/games';
 
@@ -13,6 +13,20 @@ export default function AdminGames() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [currentGame, setCurrentGame] = useState(null);
+
+  // Close modals on Escape keypress
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setShowAddModal(false);
+        setShowEditModal(false);
+      }
+    };
+    if (showAddModal || showEditModal) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showAddModal, showEditModal]);
 
   // Form states
   const [formData, setFormData] = useState({
@@ -210,6 +224,8 @@ export default function AdminGames() {
           <div className="fixed inset-0 bg-gaming-dark/80 backdrop-blur-sm" onClick={() => setShowAddModal(false)} />
           <form
             onSubmit={handleAdd}
+            role="dialog"
+            aria-modal="true"
             className="relative w-full max-w-md bg-gaming-card border border-gaming-border rounded-3xl p-6 space-y-4 text-left z-10"
           >
             <div className="flex items-center justify-between pb-3 border-b border-gaming-border/60">
@@ -311,6 +327,8 @@ export default function AdminGames() {
           <div className="fixed inset-0 bg-gaming-dark/80 backdrop-blur-sm" onClick={() => setShowEditModal(false)} />
           <form
             onSubmit={handleEdit}
+            role="dialog"
+            aria-modal="true"
             className="relative w-full max-w-md bg-gaming-card border border-gaming-border rounded-3xl p-6 space-y-4 text-left z-10"
           >
             <div className="flex items-center justify-between pb-3 border-b border-gaming-border/60">
