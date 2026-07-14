@@ -1,0 +1,108 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Orbitron:wght@600;700;800;900&display=swap');
+
+@import "tailwindcss";
+
+
+@theme {
+  --font-sans: 'Outfit', sans-serif;
+  --font-gaming: 'Orbitron', sans-serif;
+  
+  --color-gaming-black: #03050a;
+  --color-gaming-dark: #060914;
+  --color-gaming-card: #0b0f1d;
+  --color-gaming-card-hover: #10162a;
+  --color-gaming-border: #141c33;
+  --color-gaming-border-active: #1d2b54;
+  
+  --color-gaming-accent: #0088ff;
+  --color-gaming-cyan: #00e5ff;
+  --color-gaming-purple: #8b5cf6;
+  --color-gaming-pink: #ec4899;
+}
+
+body {
+  background-color: var(--color-gaming-dark);
+  color: #f3f4f6;
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom scrollbar for premium dark feel */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-gaming-dark);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-gaming-border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-gaming-border-active);
+}
+
+/* Glassmorphism utilities */
+.glass-panel {
+  background: rgba(11, 15, 29, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.glass-card {
+  background: rgba(11, 15, 29, 0.5);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card:hover {
+  background: rgba(16, 22, 42, 0.8);
+  border-color: rgba(0, 136, 255, 0.3);
+  box-shadow: 0 0 25px rgba(0, 136, 255, 0.15);
+  transform: translateY(-4px);
+}
+
+/* Swiper custom styles */
+.swiper-button-next,
+.swiper-button-prev {
+  color: #0088ff !important;
+  background: rgba(11, 15, 29, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  width: 44px !important;
+  height: 44px !important;
+  border-radius: 50% !important;
+  backdrop-filter: blur(4px);
+  transition: all 0.2s ease;
+}
+
+.swiper-button-next:hover,
+.swiper-button-prev:hover {
+  background: #0088ff;
+  color: white !important;
+  border-color: #0088ff;
+  box-shadow: 0 0 15px rgba(0, 136, 255, 0.4);
+}
+
+.swiper-button-next::after,
+.swiper-button-prev::after {
+  font-size: 18px !important;
+  font-weight: bold;
+}
+
+.swiper-pagination-bullet {
+  background: rgba(255, 255, 255, 0.3) !important;
+}
+
+.swiper-pagination-bullet-active {
+  background: #0088ff !important;
+  width: 24px !important;
+  border-radius: 4px !important;
+}
