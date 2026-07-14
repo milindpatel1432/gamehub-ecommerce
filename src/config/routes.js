@@ -1,0 +1,16 @@
+export const FRONTEND_ROUTES = {
+  HOME: '/',
+  SHOP: '/shop',
+  PRODUCT_DETAILS: (id) => `/product/${id}`,
+  CART: '/cart',
+  CHECKOUT: '/checkout',
+  ORDER_SUCCESS: '/order-success',
+  WISHLIST: '/wishlist',
+  LOGIN: '/login',
+  REGISTER: '/register',
+  FORGOT_PASSWORD: '/forgot-password',
+  DASHBOARD: '/dashboard',
+  ADMIN_DASHBOARD: '/admin',
+  UNAUTHORIZED: '/unauthorized',
+  SERVER_ERROR: '/server-error',
+};
