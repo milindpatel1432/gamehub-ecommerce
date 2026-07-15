@@ -1,67 +1,92 @@
 import { createContext, useContext, useState } from 'react';
+import axios from 'axios';
+
+axios.defaults.baseURL = 'http://localhost:5000/api/v1';
+axios.defaults.withCredentials = true;
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [registeredUsers, setRegisteredUsers] = useState([
-    // Seed a default credentials account for easy testing
-    {
-      fullName: 'Marcus Thorne',
-      username: 'marcus',
-      email: 'marcus@gamehub.com',
-      phone: '+15550001234',
-      password: 'Password123',
-      address: '123 Neon Street, Sky-Tower 4',
-    },
-  ]);
 
-  const login = (email, password) => {
-    const matched = registeredUsers.find(
-      (u) => u.email.toLowerCase() === email.toLowerCase() && u.password === password
-    );
-    if (matched) {
-      setUser({
-        fullName: matched.fullName,
-        username: matched.username,
-        email: matched.email,
-        phone: matched.phone,
-        address: matched.address || '',
+  // ==========================
+  // LOGIN
+  // ==========================
+  const login = async (email, password) => {
+    try {
+      const response = await axios.post('/auth/login', {
+        email,
+        password,
       });
+
+      const loggedUser = response.data.user;
+
+      setUser({
+        fullName: loggedUser.fullName,
+        username: loggedUser.username,
+        email: loggedUser.email,
+        phone: loggedUser.phone,
+        address: loggedUser.address || '',
+        role: loggedUser.role,
+      });
+
       return { success: true };
+    } catch (error) {
+      return {
+        success: false,
+        error:
+          error.response?.data?.message ||
+          'Invalid email or password.',
+      };
     }
-    return { success: false, error: 'Invalid email or password.' };
   };
 
+  // ==========================
+  // LOGOUT
+  // ==========================
   const logout = () => {
     setUser(null);
   };
 
-  const register = (userData) => {
-    const { fullName, username, email, phone, password } = userData;
-    const exists = registeredUsers.some(
-      (u) => u.email.toLowerCase() === email.toLowerCase() || u.username.toLowerCase() === username.toLowerCase()
-    );
-    if (exists) {
-      return { success: false, error: 'Email or Username is already registered.' };
+  // ==========================
+  // REGISTER
+  // (Frontend temporary version)
+  // ==========================
+  const register = async (userData) => {
+    try {
+      const response = await axios.post('/auth/register', userData);
+
+      const newUser = response.data.user;
+
+      setUser({
+        fullName: newUser.fullName,
+        username: newUser.username,
+        email: newUser.email,
+        phone: newUser.phone,
+        address: '',
+        role: newUser.role,
+      });
+
+      return { success: true };
+    } catch (error) {
+      return {
+        success: false,
+        error:
+          error.response?.data?.message ||
+          'Registration failed.',
+      };
     }
-    const newUser = { fullName, username, email, phone, password, address: '' };
-    setRegisteredUsers((prev) => [...prev, newUser]);
-    // Log them in immediately
-    setUser({ fullName, username, email, phone, address: '' });
-    return { success: true };
   };
 
+  // ==========================
+  // UPDATE PROFILE
+  // ==========================
   const updateProfile = (updatedData) => {
-    setUser((prev) => {
-      if (!prev) return null;
-      const updated = { ...prev, ...updatedData };
-      // Also update registeredUsers list for consistency
-      setRegisteredUsers((prevUsers) =>
-        prevUsers.map((u) => (u.email.toLowerCase() === prev.email.toLowerCase() ? { ...u, ...updatedData } : u))
-      );
-      return updated;
-    });
+    setUser((prev) => ({
+      ...prev,
+      ...updatedData,
+    }));
+
     return { success: true };
   };
 
@@ -83,8 +108,10 @@ export function AuthProvider({ children }) {
 
 export function useAuth() {
   const context = useContext(AuthContext);
+
   if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
+
   return context;
 }
