@@ -66,18 +66,18 @@ export default function RegisterForm() {
       errorToast('You must agree to the Terms of Service.');
       return;
     }
-    // Simulated short delay
-    await new Promise((resolve) => setTimeout(resolve, 600));
-    const res = authRegister({
+
+    const res = await authRegister({
       fullName: data.fullName.trim(),
       username: data.username.trim(),
       email: data.email,
       phone: data.phone,
       password: data.password,
     });
+
     if (res.success) {
-      successToast('Account registered successfully! Welcome to GameHub.');
-      navigate('/dashboard');
+      successToast('Registration successful! Please login.');
+      navigate('/login');
     } else {
       errorToast(res.error);
     }

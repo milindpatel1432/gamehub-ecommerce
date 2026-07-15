@@ -30,7 +30,9 @@ export function AuthProvider({ children }) {
         role: loggedUser.role,
       });
 
-      return { success: true };
+      return {
+        success: true,
+      };
     } catch (error) {
       return {
         success: false,
@@ -42,32 +44,16 @@ export function AuthProvider({ children }) {
   };
 
   // ==========================
-  // LOGOUT
-  // ==========================
-  const logout = () => {
-    setUser(null);
-  };
-
-  // ==========================
   // REGISTER
-  // (Frontend temporary version)
   // ==========================
   const register = async (userData) => {
     try {
-      const response = await axios.post('/auth/register', userData);
+      await axios.post('/auth/register', userData);
 
-      const newUser = response.data.user;
-
-      setUser({
-        fullName: newUser.fullName,
-        username: newUser.username,
-        email: newUser.email,
-        phone: newUser.phone,
-        address: '',
-        role: newUser.role,
-      });
-
-      return { success: true };
+      return {
+        success: true,
+        message: 'Registration successful',
+      };
     } catch (error) {
       return {
         success: false,
@@ -79,6 +65,19 @@ export function AuthProvider({ children }) {
   };
 
   // ==========================
+  // LOGOUT
+  // ==========================
+  const logout = async () => {
+    try {
+      await axios.post('/auth/logout');
+    } catch (error) {
+      console.log(error);
+    }
+
+    setUser(null);
+  };
+
+  // ==========================
   // UPDATE PROFILE
   // ==========================
   const updateProfile = (updatedData) => {
@@ -87,7 +86,9 @@ export function AuthProvider({ children }) {
       ...updatedData,
     }));
 
-    return { success: true };
+    return {
+      success: true,
+    };
   };
 
   return (
