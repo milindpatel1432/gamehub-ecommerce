@@ -58,6 +58,7 @@ export function AuthProvider({ children }) {
       return {
         success: false,
         error:
+          error.response?.data?.errors?.[0]?.message ||
           error.response?.data?.message ||
           'Registration failed.',
       };

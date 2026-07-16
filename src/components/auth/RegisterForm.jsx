@@ -11,7 +11,8 @@ import {
   PASSWORD_VALIDATION,
   PHONE_VALIDATION,
   NAME_VALIDATION,
-  REQUIRED_VALIDATION
+  REQUIRED_VALIDATION,
+  USERNAME_VALIDATION
 } from '../../utils/validation';
 
 export default function RegisterForm() {
@@ -133,7 +134,7 @@ export default function RegisterForm() {
               className={`block h-12 w-full pl-11 pr-4 rounded-xl bg-gaming-black/60 border text-sm text-slate-200 placeholder-slate-600 focus:outline-none transition-all ${
                 errors.username ? 'border-red-500 focus:border-red-500' : 'border-gaming-border focus:border-gaming-cyan/60'
               }`}
-              {...register('username', REQUIRED_VALIDATION('Username'))}
+              {...register('username', USERNAME_VALIDATION)}
             />
           </div>
           {errors.username && (

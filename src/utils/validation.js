@@ -19,14 +19,16 @@ export const PASSWORD_VALIDATION = {
       /[a-z]/.test(value) || 'Password must contain at least one lowercase letter',
     hasNumber: (value) =>
       /[0-9]/.test(value) || 'Password must contain at least one digit',
+    hasSpecial: (value) =>
+      /[^A-Za-z0-9]/.test(value) || 'Password must contain at least one special character',
   },
 };
 
 export const PHONE_VALIDATION = {
   required: 'Phone number is required',
   pattern: {
-    value: /^[0-9]{10}$/,
-    message: 'Phone number must be exactly 10 digits',
+    value: /^[6-9]\d{9}$/,
+    message: 'Phone number must be a valid 10-digit Indian mobile number (starting with 6-9)',
   },
 };
 
@@ -52,3 +54,19 @@ export const NAME_VALIDATION = {
 export const REQUIRED_VALIDATION = (fieldName = 'Field') => ({
   required: `${fieldName} is required`,
 });
+
+export const USERNAME_VALIDATION = {
+  required: 'Username is required',
+  minLength: {
+    value: 3,
+    message: 'Username must be at least 3 characters long',
+  },
+  maxLength: {
+    value: 20,
+    message: 'Username must not exceed 20 characters',
+  },
+  pattern: {
+    value: /^[a-zA-Z0-9_]+$/,
+    message: 'Username must contain only letters, numbers, and underscores',
+  },
+};
