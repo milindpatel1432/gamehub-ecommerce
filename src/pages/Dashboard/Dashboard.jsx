@@ -34,10 +34,10 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState(location.state?.tab || 'overview'); // overview, orders, rentals, wishlist, profile, settings
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     successToast('Logged out successfully.');
-    navigate('/');
+    navigate('/login');
   };
 
   // Close mobile menu drawer on Escape keypress

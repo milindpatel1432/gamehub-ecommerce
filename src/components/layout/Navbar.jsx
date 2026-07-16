@@ -19,7 +19,7 @@ export default function Navbar() {
   const handleLogout = async () => {
     await logout();
     successToast('Logged out successfully.');
-    navigate('/');
+    navigate('/login');
   };
 
   // Close mobile drawer on Escape keypress
