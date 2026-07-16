@@ -1,10 +1,46 @@
 import Product from '../models/Product.js';
 
 // ==========================================
+// Slug Generation Helpers
+// ==========================================
+const slugify = (text) => {
+  return text
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')           // Replace spaces with -
+    .replace(/[^\w\-]+/g, '')       // Remove all non-word chars
+    .replace(/\-\-+/g, '-');        // Replace multiple - with single -
+};
+
+const generateUniqueSlug = async (title, excludeId = null) => {
+  let baseSlug = slugify(title);
+  let uniqueSlug = baseSlug;
+  let count = 1;
+
+  while (true) {
+    const query = { slug: uniqueSlug };
+    if (excludeId) {
+      query._id = { $ne: excludeId };
+    }
+    const slugExists = await Product.findOne(query);
+    if (!slugExists) {
+      break;
+    }
+    uniqueSlug = `${baseSlug}-${count}`;
+    count++;
+  }
+  return uniqueSlug;
+};
+
+// ==========================================
 // Create Product
 // ==========================================
 export const createProduct = async (req, res, next) => {
   try {
+    if (req.body.title) {
+      req.body.slug = await generateUniqueSlug(req.body.title);
+    }
     const product = await Product.create(req.body);
     res.status(201).json({
       success: true,
@@ -19,7 +55,7 @@ export const createProduct = async (req, res, next) => {
 // ==========================================
 // Get Active Products (Newest First)
 // ==========================================
-export const getProducts = async (req, res, next) => {
+export const getAllProducts = async (req, res, next) => {
   try {
     const products = await Product.find({ isActive: true }).sort({ createdAt: -1 });
     res.status(200).json({
@@ -33,11 +69,11 @@ export const getProducts = async (req, res, next) => {
 };
 
 // ==========================================
-// Get Product By ID
+// Get Product By ID (Only Active)
 // ==========================================
 export const getProductById = async (req, res, next) => {
   try {
-    const product = await Product.findById(req.params.id);
+    const product = await Product.findOne({ _id: req.params.id, isActive: true });
     if (!product) {
       return res.status(404).json({
         success: false,
@@ -59,6 +95,9 @@ export const getProductById = async (req, res, next) => {
 // ==========================================
 export const updateProduct = async (req, res, next) => {
   try {
+    if (req.body.title) {
+      req.body.slug = await generateUniqueSlug(req.body.title, req.params.id);
+    }
     const product = await Product.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
       runValidators: true,

@@ -2,9 +2,9 @@ import mongoose from 'mongoose';
 
 const ProductSchema = new mongoose.Schema(
   {
-    name: {
+    title: {
       type: String,
-      required: [true, 'Product name is required'],
+      required: [true, 'Product title is required'],
       trim: true,
     },
     slug: {
@@ -104,8 +104,6 @@ const ProductSchema = new mongoose.Schema(
   }
 );
 
-// Indexing slug for fast queries
-ProductSchema.index({ slug: 1 });
 
 const Product = mongoose.model('Product', ProductSchema);
 
