@@ -5,6 +5,7 @@ import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 
 import authRoutes from './routes/authRoutes.js';
+import productRoutes from './routes/productRoutes.js';
 
 const app = express();
 
@@ -43,6 +44,7 @@ if (process.env.NODE_ENV === 'development') {
 // API Routes
 // ================================
 app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/products', productRoutes);
 
 // Base API Route
 app.get('/api/v1', (req, res) => {
