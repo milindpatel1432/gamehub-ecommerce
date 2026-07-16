@@ -1,5 +1,8 @@
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import api from '../services/api';
+import { createContext, useContext, useState, useEffect } from 'react';
+import axios from 'axios';
+
+axios.defaults.baseURL = 'http://localhost:5000/api/v1';
+axios.defaults.withCredentials = true;
 
 const AuthContext = createContext(null);
 
@@ -8,11 +11,11 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   // ==========================
-  // FETCH PROFILE (Persistent Login)
+  // CHECK AUTH (Persistent Login)
   // ==========================
-  const fetchProfile = useCallback(async () => {
+  const checkAuth = async () => {
     try {
-      const response = await api.get('/auth/profile');
+      const response = await axios.get('/auth/profile');
       if (response.data?.success && response.data?.user) {
         setUser(response.data.user);
         return { success: true, user: response.data.user };
@@ -25,25 +28,22 @@ export function AuthProvider({ children }) {
         success: false,
         error: error.response?.data?.message || 'Failed to fetch user profile',
       };
-    }
-  }, []);
-
-  // Fetch profile on initial mount
-  useEffect(() => {
-    const initializeAuth = async () => {
-      setLoading(true);
-      await fetchProfile();
+    } finally {
       setLoading(false);
-    };
-    initializeAuth();
-  }, [fetchProfile]);
+    }
+  };
+
+  // Run checkAuth once when application starts
+  useEffect(() => {
+    checkAuth();
+  }, []);
 
   // ==========================
   // LOGIN
   // ==========================
   const login = async (email, password) => {
     try {
-      const response = await api.post('/auth/login', {
+      const response = await axios.post('/auth/login', {
         email,
         password,
       });
@@ -66,7 +66,7 @@ export function AuthProvider({ children }) {
   // ==========================
   const register = async (userData) => {
     try {
-      await api.post('/auth/register', userData);
+      await axios.post('/auth/register', userData);
       return {
         success: true,
         message: 'Registration successful',
@@ -87,7 +87,7 @@ export function AuthProvider({ children }) {
   // ==========================
   const logout = async () => {
     try {
-      await api.post('/auth/logout');
+      await axios.post('/auth/logout');
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
@@ -112,6 +112,15 @@ export function AuthProvider({ children }) {
     };
   };
 
+  // Until authentication is checked, do not render the application
+  if (loading) {
+    return (
+      <div className="flex h-screen w-screen items-center justify-center bg-gaming-dark text-gaming-cyan font-bold text-lg">
+        Loading...
+      </div>
+    );
+  }
+
   return (
     <AuthContext.Provider
       value={{
@@ -121,7 +130,7 @@ export function AuthProvider({ children }) {
         login,
         logout,
         register,
-        fetchProfile,
+        checkAuth,
         updateProfile,
       }}
     >
