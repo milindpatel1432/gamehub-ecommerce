@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useWishlist } from '../../context/WishlistContext';
 import { useCart } from '../../context/CartContext';
@@ -30,7 +30,8 @@ export default function Dashboard() {
   const { wishlistItems, removeFromWishlist } = useWishlist();
   const { addToCart } = useCart();
 
-  const [activeTab, setActiveTab] = useState('overview'); // overview, orders, rentals, wishlist, profile, settings
+  const location = useLocation();
+  const [activeTab, setActiveTab] = useState(location.state?.tab || 'overview'); // overview, orders, rentals, wishlist, profile, settings
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleLogout = () => {

@@ -23,7 +23,7 @@ const router = express.Router();
 // ===============================
 router.post('/register', registerValidator, register);
 router.post('/login', loginValidator, login);
-router.post('/logout', protect, logout);
+router.post('/logout', logout);
 router.get('/profile', protect, getProfile);
 router.post('/forgot-password', forgotPasswordValidator, forgotPassword);
 router.post('/reset-password', resetPassword);

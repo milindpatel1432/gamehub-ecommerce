@@ -12,6 +12,7 @@ import ForgotPassword from '../pages/Auth/ForgotPassword';
 import Dashboard from '../pages/Dashboard/Dashboard';
 import AdminDashboard from '../pages/Admin/AdminDashboard';
 import ProtectedRoute from './ProtectedRoute';
+import GuestRoute from './GuestRoute';
 import PageNotFound from '../pages/Error/PageNotFound';
 import Unauthorized from '../pages/Error/Unauthorized';
 import ServerError from '../pages/Error/ServerError';
@@ -22,13 +23,40 @@ export default function AppRoutes() {
       <Route path="/" element={<Home />} />
       <Route path="/shop" element={<Shop />} />
       <Route path="/product/:id" element={<ProductDetails />} />
-      <Route path="/cart" element={<Cart />} />
-      <Route path="/checkout" element={<Checkout />} />
-      <Route path="/order-success" element={<OrderSuccess />} />
-      <Route path="/wishlist" element={<Wishlist />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/forgot-password" element={<ForgotPassword />} />
+      
+      {/* Protected Routes */}
+      <Route
+        path="/cart"
+        element={
+          <ProtectedRoute>
+            <Cart />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/checkout"
+        element={
+          <ProtectedRoute>
+            <Checkout />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/order-success"
+        element={
+          <ProtectedRoute>
+            <OrderSuccess />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/wishlist"
+        element={
+          <ProtectedRoute>
+            <Wishlist />
+          </ProtectedRoute>
+        }
+      />
       <Route
         path="/dashboard"
         element={
@@ -37,9 +65,54 @@ export default function AppRoutes() {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/orders"
+        element={
+          <ProtectedRoute>
+            <Navigate to="/dashboard" state={{ tab: 'orders' }} replace />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <Navigate to="/dashboard" state={{ tab: 'profile' }} replace />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Guest-only Routes */}
+      <Route
+        path="/login"
+        element={
+          <GuestRoute>
+            <Login />
+          </GuestRoute>
+        }
+      />
+      <Route
+        path="/register"
+        element={
+          <GuestRoute>
+            <Register />
+          </GuestRoute>
+        }
+      />
+      <Route
+        path="/forgot-password"
+        element={
+          <GuestRoute>
+            <ForgotPassword />
+          </GuestRoute>
+        }
+      />
+
+      {/* Admin and Error Routes */}
       <Route path="/admin" element={<AdminDashboard />} />
       <Route path="/unauthorized" element={<Unauthorized />} />
       <Route path="/server-error" element={<ServerError />} />
+      
       {/* Fallback route */}
       <Route path="*" element={<PageNotFound />} />
     </Routes>

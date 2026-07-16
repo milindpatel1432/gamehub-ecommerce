@@ -6,14 +6,21 @@ import logo from '../../assets/images/logo.webp';
 import { useWishlist } from '../../context/WishlistContext';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
+import { successToast } from '../../utils/toast';
 
 export default function Navbar() {
   const navigate = useNavigate();
   const { wishlistItems } = useWishlist();
   const { getCartItemCount } = useCart();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
+
+  const handleLogout = async () => {
+    await logout();
+    successToast('Logged out successfully.');
+    navigate('/');
+  };
 
   // Close mobile drawer on Escape keypress
   useEffect(() => {
@@ -97,20 +104,38 @@ export default function Navbar() {
             </Link>
 
             {isAuthenticated ? (
-              <Link
-                to="/dashboard"
-                className="h-10 px-5 rounded-full border border-gaming-border hover:border-gaming-cyan/40 bg-gaming-black/20 hover:bg-gaming-cyan/5 text-xs font-semibold text-gaming-cyan flex items-center gap-2 transition-all"
-              >
-                <User className="h-4.5 w-4.5" />
-                {user?.fullName.split(' ')[0]}
-              </Link>
+              <div className="flex items-center gap-4">
+                <Link
+                  to="/dashboard"
+                  className="h-10 px-5 rounded-full border border-gaming-border hover:border-gaming-cyan/40 bg-gaming-black/20 hover:bg-gaming-cyan/5 text-xs font-semibold text-gaming-cyan flex items-center gap-2 transition-all"
+                >
+                  <div className="w-5 h-5 rounded-full bg-gaming-cyan/20 flex items-center justify-center font-bold text-[10px] text-gaming-cyan border border-gaming-cyan/30">
+                    {user?.fullName?.charAt(0).toUpperCase()}
+                  </div>
+                  {user?.fullName.split(' ')[0]}
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="text-xs font-bold uppercase tracking-wider text-slate-400 hover:text-red-400 transition-colors cursor-pointer"
+                >
+                  Logout
+                </button>
+              </div>
             ) : (
-              <button
-                onClick={() => navigate('/login')}
-                className="h-10 px-6 rounded-full bg-gaming-accent text-white font-semibold text-sm hover:bg-gaming-cyan hover:text-gaming-black hover:shadow-[0_0_15px_rgba(0,229,255,0.4)] transition-all duration-300 cursor-pointer"
-              >
-                Sign In
-              </button>
+              <div className="flex items-center gap-4">
+                <Link
+                  to="/login"
+                  className="text-sm font-semibold text-slate-300 hover:text-gaming-cyan transition-colors"
+                >
+                  Sign In
+                </Link>
+                <button
+                  onClick={() => navigate('/register')}
+                  className="h-10 px-6 rounded-full bg-gaming-accent text-white font-semibold text-sm hover:bg-gaming-cyan hover:text-gaming-black hover:shadow-[0_0_15px_rgba(0,229,255,0.4)] transition-all duration-300 cursor-pointer"
+                >
+                  Register
+                </button>
+              </div>
             )}
           </div>
 
@@ -184,24 +209,46 @@ export default function Navbar() {
                   )}
                 </Link>
                   {isAuthenticated ? (
-                    <Link
-                      to="/dashboard"
-                      onClick={() => setIsOpen(false)}
-                      className="w-full h-11 rounded-full border border-gaming-border bg-gaming-black/45 text-gaming-cyan font-semibold flex items-center justify-center gap-2"
-                    >
-                      <User className="h-4.5 w-4.5" />
-                      Dashboard
-                    </Link>
+                    <div className="flex flex-col gap-3">
+                      <Link
+                        to="/dashboard"
+                        onClick={() => setIsOpen(false)}
+                        className="w-full h-11 rounded-full border border-gaming-border bg-gaming-black/45 text-gaming-cyan font-semibold flex items-center justify-center gap-2"
+                      >
+                        <User className="h-4.5 w-4.5" />
+                        Dashboard ({user?.fullName.split(' ')[0]})
+                      </Link>
+                      <button
+                        onClick={() => {
+                          setIsOpen(false);
+                          handleLogout();
+                        }}
+                        className="w-full h-11 rounded-full border border-red-500/30 bg-red-500/10 text-red-400 font-semibold hover:bg-red-500 hover:text-white transition-all cursor-pointer"
+                      >
+                        Sign Out
+                      </button>
+                    </div>
                   ) : (
-                    <button
-                      onClick={() => {
-                        setIsOpen(false);
-                        navigate('/login');
-                      }}
-                      className="w-full h-11 rounded-full bg-gaming-accent text-white font-semibold hover:bg-gaming-cyan hover:text-gaming-black transition-all cursor-pointer"
-                    >
-                      Sign In
-                    </button>
+                    <div className="flex flex-col gap-3">
+                      <button
+                        onClick={() => {
+                          setIsOpen(false);
+                          navigate('/login');
+                        }}
+                        className="w-full h-11 rounded-full border border-gaming-border bg-gaming-black/45 text-slate-300 font-semibold hover:text-gaming-cyan hover:border-gaming-cyan/40 transition-all cursor-pointer"
+                      >
+                        Sign In
+                      </button>
+                      <button
+                        onClick={() => {
+                          setIsOpen(false);
+                          navigate('/register');
+                        }}
+                        className="w-full h-11 rounded-full bg-gaming-accent text-white font-semibold hover:bg-gaming-cyan hover:text-gaming-black transition-all cursor-pointer"
+                      >
+                        Register
+                      </button>
+                    </div>
                   )}
               </div>
             </div>

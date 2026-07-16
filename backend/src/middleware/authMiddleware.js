@@ -24,7 +24,7 @@ export const protect = async (req, res, next) => {
         }
 
         // Verify Token
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret');
 
         // Find User
         const user = await User.findById(decoded.id).select('-password');
@@ -41,9 +41,13 @@ export const protect = async (req, res, next) => {
 
         next();
     } catch (error) {
+        let message = 'Not authorized. Invalid token.';
+        if (error.name === 'TokenExpiredError') {
+            message = 'Not authorized. Token has expired.';
+        }
         return res.status(401).json({
             success: false,
-            message: 'Invalid or expired token.',
+            message,
         });
     }
 };

@@ -1,44 +1,62 @@
-import { createContext, useContext, useState } from 'react';
-import axios from 'axios';
-
-axios.defaults.baseURL = 'http://localhost:5000/api/v1';
-axios.defaults.withCredentials = true;
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import api from '../services/api';
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // ==========================
+  // FETCH PROFILE (Persistent Login)
+  // ==========================
+  const fetchProfile = useCallback(async () => {
+    try {
+      const response = await api.get('/auth/profile');
+      if (response.data?.success && response.data?.user) {
+        setUser(response.data.user);
+        return { success: true, user: response.data.user };
+      }
+      setUser(null);
+      return { success: false, error: 'User profile not found' };
+    } catch (error) {
+      setUser(null);
+      return {
+        success: false,
+        error: error.response?.data?.message || 'Failed to fetch user profile',
+      };
+    }
+  }, []);
+
+  // Fetch profile on initial mount
+  useEffect(() => {
+    const initializeAuth = async () => {
+      setLoading(true);
+      await fetchProfile();
+      setLoading(false);
+    };
+    initializeAuth();
+  }, [fetchProfile]);
 
   // ==========================
   // LOGIN
   // ==========================
   const login = async (email, password) => {
     try {
-      const response = await axios.post('/auth/login', {
+      const response = await api.post('/auth/login', {
         email,
         password,
       });
 
-      const loggedUser = response.data.user;
-
-      setUser({
-        fullName: loggedUser.fullName,
-        username: loggedUser.username,
-        email: loggedUser.email,
-        phone: loggedUser.phone,
-        address: loggedUser.address || '',
-        role: loggedUser.role,
-      });
-
-      return {
-        success: true,
-      };
+      if (response.data?.success && response.data?.user) {
+        setUser(response.data.user);
+        return { success: true };
+      }
+      return { success: false, error: 'Login failed' };
     } catch (error) {
       return {
         success: false,
-        error:
-          error.response?.data?.message ||
-          'Invalid email or password.',
+        error: error.response?.data?.message || 'Invalid email or password.',
       };
     }
   };
@@ -48,8 +66,7 @@ export function AuthProvider({ children }) {
   // ==========================
   const register = async (userData) => {
     try {
-      await axios.post('/auth/register', userData);
-
+      await api.post('/auth/register', userData);
       return {
         success: true,
         message: 'Registration successful',
@@ -70,22 +87,25 @@ export function AuthProvider({ children }) {
   // ==========================
   const logout = async () => {
     try {
-      await axios.post('/auth/logout');
+      await api.post('/auth/logout');
     } catch (error) {
-      console.log(error);
+      console.error('Logout error:', error);
+    } finally {
+      setUser(null);
     }
-
-    setUser(null);
   };
 
   // ==========================
   // UPDATE PROFILE
   // ==========================
   const updateProfile = (updatedData) => {
-    setUser((prev) => ({
-      ...prev,
-      ...updatedData,
-    }));
+    setUser((prev) => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        ...updatedData,
+      };
+    });
 
     return {
       success: true,
@@ -96,10 +116,12 @@ export function AuthProvider({ children }) {
     <AuthContext.Provider
       value={{
         user,
+        loading,
         isAuthenticated: !!user,
         login,
         logout,
         register,
+        fetchProfile,
         updateProfile,
       }}
     >
