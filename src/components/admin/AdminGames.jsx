@@ -1,11 +1,13 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Search, Plus, Edit2, Trash2, X, Gamepad } from 'lucide-react';
-import { shopProducts } from '../../data/games';
+import { adminService } from '../../services/adminService';
+import { successToast, errorToast } from '../../utils/toast';
+import LoadingSpinner from '../ui/LoadingSpinner';
+import ImageUploader from '../ui/ImageUploader';
 
 export default function AdminGames() {
-  const [games, setGames] = useState(
-    shopProducts.filter((p) => p.category === 'Games')
-  );
+  const [games, setGames] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPlatform, setSelectedPlatform] = useState('');
   
@@ -13,6 +15,46 @@ export default function AdminGames() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [currentGame, setCurrentGame] = useState(null);
+
+  // Form states
+  const [formData, setFormData] = useState({
+    title: '',
+    platform: 'PS5',
+    buyPrice: '',
+    rentPrice: '',
+    image: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=500&auto=format&fit=crop&q=80',
+    condition: 'Brand New',
+  });
+
+  const fetchGames = async () => {
+    setIsLoading(true);
+    try {
+      const res = await adminService.getGames();
+      if (res.success && Array.isArray(res.data)) {
+        // Map database fields to UI flat keys
+        const mapped = res.data.map(product => ({
+          id: product._id,
+          title: product.title,
+          platform: Array.isArray(product.platform) ? product.platform[0] : product.platform,
+          buyPrice: product.price,
+          rentPrice: product.rentalPricePerDay,
+          image: product.thumbnail || (product.images && product.images[0]) || 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=500&auto=format&fit=crop&q=80',
+          condition: product.condition === 'Used' ? 'Pre-Owned' : 'Brand New',
+          isActive: product.isActive
+        }));
+        setGames(mapped.filter(g => g.isActive !== false));
+      }
+    } catch (err) {
+      console.error(err);
+      errorToast('Failed to load games directory.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchGames();
+  }, []);
 
   // Close modals on Escape keypress
   useEffect(() => {
@@ -28,16 +70,6 @@ export default function AdminGames() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [showAddModal, showEditModal]);
 
-  // Form states
-  const [formData, setFormData] = useState({
-    title: '',
-    platform: 'PS5',
-    buyPrice: '',
-    rentPrice: '',
-    image: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=500&auto=format&fit=crop&q=80',
-    condition: 'Brand New',
-  });
-
   const filteredGames = useMemo(() => {
     return games.filter((g) => {
       const matchSearch = g.title.toLowerCase().includes(searchQuery.toLowerCase());
@@ -46,50 +78,85 @@ export default function AdminGames() {
     });
   }, [games, searchQuery, selectedPlatform]);
 
-  const handleAdd = (e) => {
+  const handleAdd = async (e) => {
     e.preventDefault();
-    const newId = Math.max(...games.map((g) => g.id), 0) + 1;
-    const newGame = {
-      id: newId,
-      title: formData.title,
-      platform: formData.platform,
-      buyPrice: parseFloat(formData.buyPrice) || 0,
-      rentPrice: parseFloat(formData.rentPrice) || null,
-      image: formData.image,
-      category: 'Games',
-      condition: formData.condition,
-      rating: 5.0,
-      reviews: 0,
-      dateAdded: new Date().toISOString().split('T')[0],
-    };
-    setGames([...games, newGame]);
-    setShowAddModal(false);
-    resetForm();
+    try {
+      const rentPriceVal = parseFloat(formData.rentPrice) || 0;
+      const payload = {
+        title: formData.title,
+        description: 'High-quality gaming title added by admin.',
+        brand: 'GameHub Catalog',
+        category: 'Games',
+        platform: [formData.platform],
+        price: parseFloat(formData.buyPrice) || 0,
+        rentalAvailable: rentPriceVal > 0,
+        rentalPricePerDay: rentPriceVal,
+        thumbnail: formData.image,
+        images: [formData.image],
+        condition: formData.condition === 'Pre-Owned' ? 'Used' : 'New',
+        stock: 10,
+        isActive: true
+      };
+
+      const res = await adminService.addGame(payload);
+      if (res.success) {
+        successToast('Game added successfully!');
+        fetchGames();
+        setShowAddModal(false);
+        resetForm();
+      } else {
+        errorToast(res.message || 'Failed to add game.');
+      }
+    } catch (err) {
+      console.error(err);
+      errorToast(err.response?.data?.message || 'Error occurred while creating game product.');
+    }
   };
 
-  const handleEdit = (e) => {
+  const handleEdit = async (e) => {
     e.preventDefault();
-    setGames(
-      games.map((g) =>
-        g.id === currentGame.id
-          ? {
-              ...g,
-              title: formData.title,
-              platform: formData.platform,
-              buyPrice: parseFloat(formData.buyPrice) || 0,
-              rentPrice: parseFloat(formData.rentPrice) || null,
-              condition: formData.condition,
-            }
-          : g
-      )
-    );
-    setShowEditModal(false);
-    resetForm();
+    try {
+      const rentPriceVal = parseFloat(formData.rentPrice) || 0;
+      const payload = {
+        title: formData.title,
+        platform: [formData.platform],
+        price: parseFloat(formData.buyPrice) || 0,
+        rentalAvailable: rentPriceVal > 0,
+        rentalPricePerDay: rentPriceVal,
+        thumbnail: formData.image,
+        images: [formData.image],
+        condition: formData.condition === 'Pre-Owned' ? 'Used' : 'New'
+      };
+
+      const res = await adminService.updateGame(currentGame.id, payload);
+      if (res.success) {
+        successToast('Game details updated!');
+        fetchGames();
+        setShowEditModal(false);
+        resetForm();
+      } else {
+        errorToast(res.message || 'Failed to update game.');
+      }
+    } catch (err) {
+      console.error(err);
+      errorToast(err.response?.data?.message || 'Error occurred while editing game product.');
+    }
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this game?')) {
-      setGames(games.filter((g) => g.id !== id));
+      try {
+        const res = await adminService.deleteGame(id);
+        if (res.success) {
+          successToast('Game deleted successfully!');
+          fetchGames();
+        } else {
+          errorToast(res.message || 'Failed to delete game.');
+        }
+      } catch (err) {
+        console.error(err);
+        errorToast('Error occurred while deleting game product.');
+      }
     }
   };
 
@@ -117,6 +184,14 @@ export default function AdminGames() {
     });
     setCurrentGame(null);
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex h-[40vh] w-full items-center justify-center bg-gaming-card/45 rounded-2xl border border-gaming-border">
+        <LoadingSpinner />
+      </div>
+    );
+  }
 
   return (
     <div className="rounded-2xl border border-gaming-border bg-gaming-card/45 p-6 space-y-6 text-left">
@@ -195,7 +270,7 @@ export default function AdminGames() {
                 </td>
                 <td className="py-3 px-2 font-semibold text-white">${game.buyPrice.toFixed(2)}</td>
                 <td className="py-3 px-2 text-slate-400">
-                  {game.rentPrice ? `$${game.rentPrice.toFixed(2)}/mo` : 'N/A'}
+                  {game.rentPrice ? `$${game.rentPrice.toFixed(2)}/day` : 'N/A'}
                 </td>
                 <td className="py-3 px-2 text-slate-500">{game.condition}</td>
                 <td className="py-3 px-2 text-right space-x-2">
@@ -243,8 +318,8 @@ export default function AdminGames() {
                   required
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  placeholder="e.g. Witcher Arena"
-                  className="block h-11 w-full px-4 rounded-xl bg-gaming-black border border-gaming-border text-sm text-white"
+                  className="w-full h-11 px-4 rounded-xl bg-gaming-black border border-gaming-border text-xs text-white focus:outline-none focus:border-gaming-cyan"
+                  placeholder="Grand Theft Auto VI"
                 />
               </div>
 
@@ -254,23 +329,23 @@ export default function AdminGames() {
                   <select
                     value={formData.platform}
                     onChange={(e) => setFormData({ ...formData, platform: e.target.value })}
-                    className="block h-11 w-full px-4 rounded-xl bg-gaming-black border border-gaming-border text-sm text-white"
+                    className="w-full h-11 px-3 rounded-xl bg-gaming-black border border-gaming-border text-xs text-white focus:outline-none focus:border-gaming-cyan"
                   >
-                    <option value="PS5">PS5</option>
+                    <option value="PS5">PlayStation 5</option>
                     <option value="XBOX">Xbox Series X</option>
                     <option value="PC">PC</option>
                   </select>
                 </div>
+
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Condition</label>
                   <select
                     value={formData.condition}
                     onChange={(e) => setFormData({ ...formData, condition: e.target.value })}
-                    className="block h-11 w-full px-4 rounded-xl bg-gaming-black border border-gaming-border text-sm text-white"
+                    className="w-full h-11 px-3 rounded-xl bg-gaming-black border border-gaming-border text-xs text-white focus:outline-none focus:border-gaming-cyan"
                   >
                     <option value="Brand New">Brand New</option>
-                    <option value="Pre-owned">Pre-owned</option>
-                    <option value="Digital Key">Digital Key</option>
+                    <option value="Pre-Owned">Pre-Owned</option>
                   </select>
                 </div>
               </div>
@@ -284,39 +359,37 @@ export default function AdminGames() {
                     required
                     value={formData.buyPrice}
                     onChange={(e) => setFormData({ ...formData, buyPrice: e.target.value })}
-                    placeholder="59.99"
-                    className="block h-11 w-full px-4 rounded-xl bg-gaming-black border border-gaming-border text-sm text-white"
+                    className="w-full h-11 px-4 rounded-xl bg-gaming-black border border-gaming-border text-xs text-white focus:outline-none focus:border-gaming-cyan"
+                    placeholder="69.99"
                   />
                 </div>
+
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Rent Price ($/mo)</label>
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Rent Price ($/day)</label>
                   <input
                     type="number"
                     step="0.01"
                     value={formData.rentPrice}
                     onChange={(e) => setFormData({ ...formData, rentPrice: e.target.value })}
-                    placeholder="4.99"
-                    className="block h-11 w-full px-4 rounded-xl bg-gaming-black border border-gaming-border text-sm text-white"
+                    className="w-full h-11 px-4 rounded-xl bg-gaming-black border border-gaming-border text-xs text-white focus:outline-none focus:border-gaming-cyan"
+                    placeholder="3.50"
                   />
                 </div>
               </div>
+
+              <ImageUploader
+                value={formData.image}
+                onChange={(url) => setFormData({ ...formData, image: url })}
+                multiple={false}
+              />
             </div>
 
-            <div className="pt-2 flex justify-end gap-3 border-t border-gaming-border/60">
-              <button
-                type="button"
-                onClick={() => setShowAddModal(false)}
-                className="h-10 px-6 rounded-full border border-gaming-border text-xs font-bold text-slate-300"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="h-10 px-6 rounded-full bg-gaming-cyan text-gaming-black font-bold text-xs"
-              >
-                Create Game
-              </button>
-            </div>
+            <button
+              type="submit"
+              className="w-full h-12 rounded-xl bg-gaming-cyan hover:bg-gaming-accent text-gaming-black hover:text-white font-bold text-xs tracking-wider transition-colors cursor-pointer pt-0.5 mt-2"
+            >
+              Add to Catalog
+            </button>
           </form>
         </div>
       )}
@@ -346,7 +419,7 @@ export default function AdminGames() {
                   required
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  className="block h-11 w-full px-4 rounded-xl bg-gaming-black border border-gaming-border text-sm text-white"
+                  className="w-full h-11 px-4 rounded-xl bg-gaming-black border border-gaming-border text-xs text-white focus:outline-none focus:border-gaming-cyan"
                 />
               </div>
 
@@ -356,23 +429,23 @@ export default function AdminGames() {
                   <select
                     value={formData.platform}
                     onChange={(e) => setFormData({ ...formData, platform: e.target.value })}
-                    className="block h-11 w-full px-4 rounded-xl bg-gaming-black border border-gaming-border text-sm text-white"
+                    className="w-full h-11 px-3 rounded-xl bg-gaming-black border border-gaming-border text-xs text-white focus:outline-none focus:border-gaming-cyan"
                   >
-                    <option value="PS5">PS5</option>
+                    <option value="PS5">PlayStation 5</option>
                     <option value="XBOX">Xbox Series X</option>
                     <option value="PC">PC</option>
                   </select>
                 </div>
+
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Condition</label>
                   <select
                     value={formData.condition}
                     onChange={(e) => setFormData({ ...formData, condition: e.target.value })}
-                    className="block h-11 w-full px-4 rounded-xl bg-gaming-black border border-gaming-border text-sm text-white"
+                    className="w-full h-11 px-3 rounded-xl bg-gaming-black border border-gaming-border text-xs text-white focus:outline-none focus:border-gaming-cyan"
                   >
                     <option value="Brand New">Brand New</option>
-                    <option value="Pre-owned">Pre-owned</option>
-                    <option value="Digital Key">Digital Key</option>
+                    <option value="Pre-Owned">Pre-Owned</option>
                   </select>
                 </div>
               </div>
@@ -386,37 +459,35 @@ export default function AdminGames() {
                     required
                     value={formData.buyPrice}
                     onChange={(e) => setFormData({ ...formData, buyPrice: e.target.value })}
-                    className="block h-11 w-full px-4 rounded-xl bg-gaming-black border border-gaming-border text-sm text-white"
+                    className="w-full h-11 px-4 rounded-xl bg-gaming-black border border-gaming-border text-xs text-white focus:outline-none focus:border-gaming-cyan"
                   />
                 </div>
+
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Rent Price ($/mo)</label>
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Rent Price ($/day)</label>
                   <input
                     type="number"
                     step="0.01"
                     value={formData.rentPrice}
                     onChange={(e) => setFormData({ ...formData, rentPrice: e.target.value })}
-                    className="block h-11 w-full px-4 rounded-xl bg-gaming-black border border-gaming-border text-sm text-white"
+                    className="w-full h-11 px-4 rounded-xl bg-gaming-black border border-gaming-border text-xs text-white focus:outline-none focus:border-gaming-cyan"
                   />
                 </div>
               </div>
+
+              <ImageUploader
+                value={formData.image}
+                onChange={(url) => setFormData({ ...formData, image: url })}
+                multiple={false}
+              />
             </div>
 
-            <div className="pt-2 flex justify-end gap-3 border-t border-gaming-border/60">
-              <button
-                type="button"
-                onClick={() => setShowEditModal(false)}
-                className="h-10 px-6 rounded-full border border-gaming-border text-xs font-bold text-slate-300"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="h-10 px-6 rounded-full bg-gaming-cyan text-gaming-black font-bold text-xs"
-              >
-                Save Changes
-              </button>
-            </div>
+            <button
+              type="submit"
+              className="w-full h-12 rounded-xl bg-gaming-cyan hover:bg-gaming-accent text-gaming-black hover:text-white font-bold text-xs tracking-wider transition-colors cursor-pointer pt-0.5 mt-2"
+            >
+              Update Details
+            </button>
           </form>
         </div>
       )}

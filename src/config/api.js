@@ -22,11 +22,15 @@ export const API_ENDPOINTS = {
     GET: '/wishlist',
     ADD: '/wishlist/add',
     REMOVE: (id) => `/wishlist/remove/${id}`,
+    MOVE_TO_CART: (id) => `/wishlist/move-to-cart/${id}`,
   },
   ORDERS: {
     LIST: '/orders',
     CREATE: '/orders',
     DETAILS: (id) => `/orders/${id}`,
+    CANCEL: (id) => `/orders/${id}/cancel`,
+    UPDATE_STATUS: (id) => `/orders/${id}/status`,
+    ADMIN_LIST: '/orders/admin/all',
   },
   RENTALS: {
     LIST: '/rentals',
@@ -46,4 +50,15 @@ export const API_ENDPOINTS = {
     USERS: '/admin/users',
     ANALYTICS: '/admin/analytics',
   },
+  REVIEWS: {
+    GET_PRODUCT: (productId) => `/reviews/product/${productId}`,
+    CREATE: '/reviews',
+    UPDATE: (id) => `/reviews/${id}`,
+    REMOVE: (id) => `/reviews/${id}`,
+    ADMIN_LIST: '/reviews'
+  },
+  UPLOAD: {
+    IMAGE: '/upload/image',
+    DELETE: (publicId) => `/upload/image/${publicId}`
+  }
 };

@@ -16,6 +16,8 @@ import GuestRoute from './GuestRoute';
 import PageNotFound from '../pages/Error/PageNotFound';
 import Unauthorized from '../pages/Error/Unauthorized';
 import ServerError from '../pages/Error/ServerError';
+import Orders from '../pages/Orders/Orders';
+import OrderDetails from '../pages/Orders/OrderDetails';
 
 export default function AppRoutes() {
   return (
@@ -69,7 +71,15 @@ export default function AppRoutes() {
         path="/orders"
         element={
           <ProtectedRoute>
-            <Navigate to="/dashboard" state={{ tab: 'orders' }} replace />
+            <Orders />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/orders/:id"
+        element={
+          <ProtectedRoute>
+            <OrderDetails />
           </ProtectedRoute>
         }
       />

@@ -1,37 +1,41 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Users, Search, ShieldAlert, Trash2 } from 'lucide-react';
+import { adminService } from '../../services/adminService';
+import { successToast, errorToast } from '../../utils/toast';
+import LoadingSpinner from '../ui/LoadingSpinner';
 
 export default function AdminUsers() {
-  const [users, setUsers] = useState([
-    {
-      id: 1,
-      fullName: 'Marcus Thorne',
-      username: 'marcus',
-      email: 'marcus@gamehub.com',
-      phone: '+15550001234',
-      role: 'Admin',
-      status: 'Active',
-    },
-    {
-      id: 2,
-      fullName: 'Elena Rostova',
-      username: 'elena',
-      email: 'elena@gamehub.com',
-      phone: '+15550009876',
-      role: 'Customer',
-      status: 'Active',
-    },
-    {
-      id: 3,
-      fullName: 'Loki Laufeyson',
-      username: 'loki',
-      email: 'loki@asgard.com',
-      phone: '+15550004321',
-      role: 'Customer',
-      status: 'Blocked',
-    },
-  ]);
+  const [users, setUsers] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+
+  const fetchUsers = async () => {
+    setIsLoading(true);
+    try {
+      const res = await adminService.getUsers();
+      if (res.success && Array.isArray(res.data)) {
+        const mapped = res.data.map(u => ({
+          id: u._id,
+          fullName: u.fullName,
+          username: u.username,
+          email: u.email,
+          phone: u.phone || 'N/A',
+          role: u.role === 'admin' ? 'Admin' : 'Customer',
+          status: u.isBlocked ? 'Blocked' : 'Active',
+        }));
+        setUsers(mapped);
+      }
+    } catch (err) {
+      console.error(err);
+      errorToast('Failed to load registered users.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
   const filteredUsers = useMemo(() => {
     return users.filter((u) =>
@@ -40,24 +44,46 @@ export default function AdminUsers() {
     );
   }, [users, searchQuery]);
 
-  const handleToggleBlock = (id) => {
-    setUsers(
-      users.map((u) => {
-        if (u.id === id) {
-          const nextStatus = u.status === 'Active' ? 'Blocked' : 'Active';
-          alert(`User ${u.fullName} is now ${nextStatus}!`);
-          return { ...u, status: nextStatus };
-        }
-        return u;
-      })
-    );
-  };
-
-  const handleDelete = (id, name) => {
-    if (window.confirm(`Are you sure you want to delete user ${name}?`)) {
-      setUsers(users.filter((u) => u.id !== id));
+  const handleToggleBlock = async (id) => {
+    try {
+      const res = await adminService.toggleBlockUser(id);
+      if (res.success && res.data) {
+        const nextStatus = res.data.isBlocked ? 'Blocked' : 'Active';
+        successToast(`User is now ${nextStatus}!`);
+        setUsers(users.map(u => u.id === id ? { ...u, status: nextStatus } : u));
+      } else {
+        errorToast(res.message || 'Failed to toggle user block status.');
+      }
+    } catch (err) {
+      console.error(err);
+      errorToast(err.response?.data?.message || 'Error occurred while changing user block status.');
     }
   };
+
+  const handleDelete = async (id, name) => {
+    if (window.confirm(`Are you sure you want to delete user ${name}?`)) {
+      try {
+        const res = await adminService.deleteUser(id);
+        if (res.success) {
+          successToast(`User ${name} deleted successfully!`);
+          setUsers(users.filter((u) => u.id !== id));
+        } else {
+          errorToast(res.message || 'Failed to delete user.');
+        }
+      } catch (err) {
+        console.error(err);
+        errorToast('Error occurred while deleting user.');
+      }
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex h-[40vh] w-full items-center justify-center bg-gaming-card/45 rounded-2xl border border-gaming-border">
+        <LoadingSpinner />
+      </div>
+    );
+  }
 
   return (
     <div className="rounded-2xl border border-gaming-border bg-gaming-card/45 p-6 space-y-6 text-left">

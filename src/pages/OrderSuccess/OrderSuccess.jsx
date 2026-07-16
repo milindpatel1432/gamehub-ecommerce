@@ -26,10 +26,13 @@ export default function OrderSuccess() {
     }
   ];
 
-  const total = location.state?.total || orderItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
+  const subtotal = location.state?.subtotal || orderItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
+  const tax = location.state?.tax !== undefined ? location.state.tax : (subtotal * 0.08);
+  const deliveryMethod = location.state?.deliveryMethod || { name: 'Standard Shipping', price: 0 };
+  const shippingCost = deliveryMethod.price;
+  const grandTotal = location.state?.total || (subtotal + tax + shippingCost);
 
-  // Generate a persistent random order number for this view
-  const dummyOrderId = '#GH-8392-491';
+  const orderId = location.state?.orderId ? `#${location.state.orderId}` : '#GH-8392-491';
 
   const handleDownloadInvoice = () => {
     // Print window simulated invoice download
@@ -62,7 +65,7 @@ export default function OrderSuccess() {
               Order Confirmed!
             </h1>
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest mt-1">
-              Order ID: <strong className="text-gaming-cyan">{dummyOrderId}</strong>
+              Order ID: <strong className="text-gaming-cyan">{orderId}</strong>
             </p>
           </div>
 
@@ -146,19 +149,21 @@ export default function OrderSuccess() {
           <div className="border-t border-gaming-border/60 pt-4 space-y-3.5 text-xs text-slate-400">
             <div className="flex items-center justify-between">
               <span>Subtotal</span>
-              <span className="font-bold text-white">${total.toFixed(2)}</span>
+              <span className="font-bold text-white">${subtotal.toFixed(2)}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span>Delivery Cost</span>
-              <span className="font-bold text-green-500">FREE</span>
+              <span>Delivery Method ({deliveryMethod.name})</span>
+              <span className={`font-bold ${shippingCost === 0 ? 'text-green-500' : 'text-white'}`}>
+                {shippingCost === 0 ? 'FREE' : `$${shippingCost.toFixed(2)}`}
+              </span>
             </div>
             <div className="flex items-center justify-between">
               <span>Estimated Tax (8%)</span>
-              <span className="font-bold text-white">${(total * 0.08).toFixed(2)}</span>
+              <span className="font-bold text-white">${tax.toFixed(2)}</span>
             </div>
             <div className="flex items-center justify-between border-t border-gaming-border/60 pt-4 text-base font-bold text-white">
               <span className="font-gaming uppercase tracking-wider">Grand Total</span>
-              <span className="font-gaming text-gaming-cyan text-xl tracking-wide">${(total * 1.08).toFixed(2)}</span>
+              <span className="font-gaming text-gaming-cyan text-xl tracking-wide">${grandTotal.toFixed(2)}</span>
             </div>
           </div>
 

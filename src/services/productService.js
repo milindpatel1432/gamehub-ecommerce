@@ -58,32 +58,97 @@ const mapProduct = (p) => {
   };
 };
 
+const extractProductsArray = (response) => {
+  if (!response) return [];
+  if (Array.isArray(response)) return response;
+  if (response.data) {
+    if (Array.isArray(response.data)) return response.data;
+    if (response.data.data) {
+      if (Array.isArray(response.data.data)) return response.data.data;
+      if (Array.isArray(response.data.data.products)) return response.data.data.products;
+    }
+    if (Array.isArray(response.data.products)) return response.data.products;
+  }
+  if (Array.isArray(response.products)) return response.products;
+  return [];
+};
+
 export const productService = {
-  getAllProducts: async () => {
-    const response = await api.get('/products');
-    const products = response.data?.data || [];
-    return {
-      ...response.data,
-      data: products.map(mapProduct)
-    };
+  getAllProducts: async (params = {}) => {
+    try {
+      const response = await api.get('/products', { params });
+      const success = response.data?.success ?? false;
+      const rawData = response.data?.data;
+      
+      let totalProducts = 0;
+      let currentPage = 1;
+      let totalPages = 1;
+
+      if (rawData && typeof rawData === 'object' && !Array.isArray(rawData)) {
+        totalProducts = rawData.totalProducts || 0;
+        currentPage = rawData.currentPage || 1;
+        totalPages = rawData.totalPages || 1;
+      }
+
+      const rawProducts = extractProductsArray(response);
+      const products = rawProducts.map(mapProduct).filter(Boolean);
+
+      return {
+        success,
+        data: products,
+        totalProducts: totalProducts || products.length,
+        currentPage,
+        totalPages
+      };
+    } catch (err) {
+      console.error('Error fetching products:', err);
+      return {
+        success: false,
+        data: [],
+        totalProducts: 0,
+        currentPage: 1,
+        totalPages: 1
+      };
+    }
   },
 
   getProductById: async (id) => {
-    const response = await api.get(`/products/${id}`);
-    const product = response.data?.data;
-    return {
-      ...response.data,
-      data: mapProduct(product)
-    };
+    try {
+      const response = await api.get(`/products/${id}`);
+      const product = response.data?.data || response.data;
+      return {
+        success: true,
+        data: mapProduct(product)
+      };
+    } catch (err) {
+      console.error('Error fetching product by ID:', err);
+      return {
+        success: false,
+        data: null
+      };
+    }
   },
 
   getFeaturedProducts: async () => {
-    const response = await api.get('/products');
-    const products = response.data?.data || [];
-    const featuredProducts = products.filter(p => p.featured);
-    return {
-      ...response.data,
-      data: featuredProducts.map(mapProduct)
-    };
+    try {
+      const response = await api.get('/products', { params: { limit: 100 } });
+      const success = response.data?.success ?? false;
+      const rawProducts = extractProductsArray(response);
+      const products = rawProducts.map(mapProduct).filter(Boolean);
+      const featured = products.filter(p => p.featured);
+
+      return {
+        success,
+        data: featured
+      };
+    } catch (err) {
+      console.error('Error fetching featured products:', err);
+      return {
+        success: false,
+        data: []
+      };
+    }
   }
 };
+
+export { mapProduct };

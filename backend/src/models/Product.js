@@ -105,6 +105,10 @@ const ProductSchema = new mongoose.Schema(
 );
 
 
+// Search & filtering performance indexes
+ProductSchema.index({ isActive: 1, category: 1, price: 1 });
+ProductSchema.index({ title: 'text', description: 'text' });
+
 const Product = mongoose.model('Product', ProductSchema);
 
 export default Product;

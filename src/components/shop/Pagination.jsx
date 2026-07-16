@@ -1,7 +1,27 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function Pagination({ currentPage = 1, totalPages = 12, onPageChange }) {
-  const pages = [1, 2, 3, '...', totalPages];
+  const getPages = () => {
+    if (totalPages <= 5) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+    const list = [1];
+    if (currentPage > 3) {
+      list.push('ellipsis-start');
+    }
+    const start = Math.max(2, currentPage - 1);
+    const end = Math.min(totalPages - 1, currentPage + 1);
+    for (let i = start; i <= end; i++) {
+      list.push(i);
+    }
+    if (currentPage < totalPages - 2) {
+      list.push('ellipsis-end');
+    }
+    list.push(totalPages);
+    return list;
+  };
+
+  const pages = getPages();
 
   return (
     <div className="w-full flex items-center justify-center gap-2.5 pt-8 border-t border-gaming-border/50">
@@ -17,7 +37,7 @@ export default function Pagination({ currentPage = 1, totalPages = 12, onPageCha
 
       {/* Page Numbers */}
       {pages.map((page, index) => {
-        if (page === '...') {
+        if (page === 'ellipsis-start' || page === 'ellipsis-end') {
           return (
             <span key={`ellipsis-${index}`} className="w-10 h-10 flex items-center justify-center text-slate-500 font-bold">
               ...

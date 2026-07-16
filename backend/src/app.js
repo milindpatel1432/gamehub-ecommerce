@@ -4,7 +4,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 
-import { authRoutes, productRoutes, cartRoutes } from './routes/index.js';
+import { authRoutes, productRoutes, cartRoutes, wishlistRoutes, orderRoutes, paymentRoutes, adminRoutes, reviewRoutes, uploadRoutes } from './routes/index.js';
 
 const app = express();
 
@@ -45,6 +45,12 @@ if (process.env.NODE_ENV === 'development') {
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/products', productRoutes);
 app.use('/api/v1/cart', cartRoutes);
+app.use('/api/v1/wishlist', wishlistRoutes);
+app.use('/api/v1/orders', orderRoutes);
+app.use('/api/v1/payments', paymentRoutes);
+app.use('/api/v1/admin', adminRoutes);
+app.use('/api/v1/reviews', reviewRoutes);
+app.use('/api/v1/upload', uploadRoutes);
 
 // Base API Route
 app.get('/api/v1', (req, res) => {

@@ -51,6 +51,13 @@ export default function AddressSection({ onAddressSelect }) {
     }
   }, [formExpanded, setFocus]);
 
+  // Sync default address on mount
+  useEffect(() => {
+    if (onAddressSelect && savedAddresses.length > 0) {
+      onAddressSelect(savedAddresses[0]);
+    }
+  }, []);
+
   const onSubmitAddress = async (data) => {
     // Simulated delay
     await new Promise((resolve) => setTimeout(resolve, 500));

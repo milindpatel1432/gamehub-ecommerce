@@ -21,8 +21,8 @@ export default function ProductDetails() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const fetchProductDetails = async () => {
-    setIsLoading(true);
+  const fetchProductDetails = async (silent = false) => {
+    if (!silent) setIsLoading(true);
     setError(null);
     try {
       const res = await productService.getProductById(id);
@@ -31,12 +31,11 @@ export default function ProductDetails() {
         
         // Fetch related products of the same category
         const allProductsRes = await productService.getAllProducts();
-        if (allProductsRes.success && Array.isArray(allProductsRes.data)) {
-          const related = allProductsRes.data
-            .filter((p) => p.category === res.data.category && p.id !== res.data.id)
-            .slice(0, 4);
-          setRelatedProducts(related);
-        }
+        const relatedList = allProductsRes?.data || [];
+        const related = relatedList
+          .filter((p) => p.category === res.data.category && p.id !== res.data.id)
+          .slice(0, 4);
+        setRelatedProducts(related);
       } else {
         setError('Product not found.');
       }
@@ -44,7 +43,7 @@ export default function ProductDetails() {
       console.error(err);
       setError(err.message || 'Failed to fetch product details.');
     } finally {
-      setIsLoading(false);
+      if (!silent) setIsLoading(false);
     }
   };
 
@@ -96,7 +95,7 @@ export default function ProductDetails() {
           {/* Left Column: Gallery & Tabs */}
           <div className="lg:col-span-7 space-y-8">
             <ProductGallery product={product} />
-            <ProductTabs product={product} />
+            <ProductTabs product={product} onRatingChange={() => fetchProductDetails(true)} />
           </div>
 
           {/* Right Column: Info & FAQs */}

@@ -9,8 +9,8 @@ const slugify = (text) => {
     .toLowerCase()
     .trim()
     .replace(/\s+/g, '-')           // Replace spaces with -
-    .replace(/[^\w\-]+/g, '')       // Remove all non-word chars
-    .replace(/\-\-+/g, '-');        // Replace multiple - with single -
+    .replace(/[^\w-]+/g, '')       // Remove all non-word chars
+    .replace(/-+/g, '-');        // Replace multiple - with single -
 };
 
 const generateUniqueSlug = async (title, excludeId = null) => {
@@ -57,11 +57,94 @@ export const createProduct = async (req, res, next) => {
 // ==========================================
 export const getAllProducts = async (req, res, next) => {
   try {
-    const products = await Product.find({ isActive: true }).sort({ createdAt: -1 });
+    const queryObject = { isActive: true };
+
+    // Regex Search
+    if (req.query.search) {
+      queryObject.$or = [
+        { title: { $regex: req.query.search, $options: 'i' } },
+        { description: { $regex: req.query.search, $options: 'i' } }
+      ];
+    }
+
+    // Category Filter
+    if (req.query.category) {
+      queryObject.category = { $regex: new RegExp('^' + req.query.category + '$', 'i') };
+    }
+
+    // Brand Filter
+    if (req.query.brand) {
+      queryObject.brand = { $regex: new RegExp('^' + req.query.brand + '$', 'i') };
+    }
+
+    // Platform Filter
+    if (req.query.platform) {
+      queryObject.platform = { $regex: new RegExp('^' + req.query.platform + '$', 'i') };
+    }
+
+    // Condition Filter
+    if (req.query.condition) {
+      queryObject.condition = req.query.condition; // 'New' or 'Used'
+    }
+
+    // Rental Available Filter
+    if (req.query.rentalAvailable !== undefined) {
+      queryObject.rentalAvailable = req.query.rentalAvailable === 'true';
+    }
+
+    // Price Filter range
+    if (req.query.minPrice || req.query.maxPrice) {
+      queryObject.price = {};
+      if (req.query.minPrice) queryObject.price.$gte = parseFloat(req.query.minPrice);
+      if (req.query.maxPrice) queryObject.price.$lte = parseFloat(req.query.maxPrice);
+    }
+
+    // Minimum Rating filter
+    if (req.query.minRating) {
+      queryObject['rating.average'] = { $gte: parseFloat(req.query.minRating) };
+    }
+
+    // Sorting definition
+    let sortCriteria = { createdAt: -1 }; // default newest
+    if (req.query.sort) {
+      switch (req.query.sort) {
+        case 'newest':
+          sortCriteria = { createdAt: -1 };
+          break;
+        case 'price-asc':
+          sortCriteria = { price: 1 };
+          break;
+        case 'price-desc':
+          sortCriteria = { price: -1 };
+          break;
+        case 'rating':
+          sortCriteria = { 'rating.average': -1 };
+          break;
+      }
+    }
+
+    // Pagination calculations
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 12;
+    const skip = (page - 1) * limit;
+
+    const totalProducts = await Product.countDocuments(queryObject);
+    const totalPages = Math.ceil(totalProducts / limit);
+
+    const products = await Product.find(queryObject)
+      .sort(sortCriteria)
+      .skip(skip)
+      .limit(limit);
+
     res.status(200).json({
       success: true,
       message: 'Products retrieved successfully',
-      data: products,
+      data: {
+        products,
+        totalProducts,
+        currentPage: page,
+        totalPages
+      },
     });
   } catch (error) {
     next(error);

@@ -3,24 +3,28 @@ import { Trash2, ShoppingCart, Heart, ArrowRight } from 'lucide-react';
 import { useWishlist } from '../../context/WishlistContext';
 import { useCart } from '../../context/CartContext';
 import { successToast } from '../../utils/toast';
+import SkeletonGrid from '../../components/ui/SkeletonGrid';
+import ErrorState from '../../components/ui/ErrorState';
 
 export default function Wishlist() {
   const navigate = useNavigate();
-  const { wishlistItems, removeFromWishlist } = useWishlist();
-  const { addToCart } = useCart();
+  const { wishlistItems, isLoading, error, removeFromWishlist, fetchWishlist, moveToCart } = useWishlist();
+  const { fetchCart } = useCart();
 
-  const handleMoveToCart = (item) => {
-    addToCart({
-      id: item.id,
-      title: item.title,
-      platform: item.platform || 'PS5',
-      buyPrice: item.buyPrice,
-      image: item.image,
-      category: item.category || 'Games',
-    });
-    removeFromWishlist(item.id);
-    successToast(`Moved ${item.title} to shopping cart!`);
-    navigate('/cart');
+  const handleMoveToCart = async (item) => {
+    try {
+      const options = {
+        isRental: !!item.rentPrice,
+        rentDuration: item.duration || '7 Days',
+      };
+      await moveToCart(item.id, options);
+      // Reload cart state from server
+      await fetchCart();
+      successToast(`Moved ${item.title} to shopping cart!`);
+      navigate('/cart');
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   return (
@@ -41,7 +45,21 @@ export default function Wishlist() {
           </h1>
         </div>
 
-        {wishlistItems.length > 0 ? (
+        {isLoading ? (
+          /* Loading State */
+          <div className="py-8">
+            <SkeletonGrid count={4} />
+          </div>
+        ) : error ? (
+          /* Error State */
+          <div className="py-12">
+            <ErrorState 
+              title="Failed to Load Wishlist" 
+              description={error} 
+              onRetry={fetchWishlist} 
+            />
+          </div>
+        ) : wishlistItems.length > 0 ? (
           /* Wishlist Grid */
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 text-left">
             {wishlistItems.map((item) => (

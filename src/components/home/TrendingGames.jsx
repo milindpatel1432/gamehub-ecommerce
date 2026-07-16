@@ -22,11 +22,8 @@ export default function TrendingGames() {
     setError(null);
     try {
       const res = await productService.getFeaturedProducts();
-      if (res.success && Array.isArray(res.data)) {
-        setGames(res.data);
-      } else {
-        setError('Failed to retrieve featured products data.');
-      }
+      const featuredList = res?.data || [];
+      setGames(Array.isArray(featuredList) ? featuredList : []);
     } catch (err) {
       console.error(err);
       setError(err.message || 'Failed to connect to backend server.');

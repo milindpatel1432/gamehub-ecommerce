@@ -13,7 +13,8 @@ import {
   Sparkles,
   Menu,
   X,
-  Plus
+  Plus,
+  MessageSquare
 } from 'lucide-react';
 
 import AdminStats from '../../components/admin/AdminStats';
@@ -24,7 +25,7 @@ import AdminRentals from '../../components/admin/AdminRentals';
 import AdminUsers from '../../components/admin/AdminUsers';
 import AdminAnalytics from '../../components/admin/AdminAnalytics';
 import AdminSettings from '../../components/admin/AdminSettings';
-import DashboardOrders from '../../components/dashboard/DashboardOrders';
+import AdminReviews from '../../components/admin/AdminReviews';
 import { successToast } from '../../utils/toast';
 
 export default function AdminDashboard() {
@@ -57,6 +58,7 @@ export default function AdminDashboard() {
     { id: 'orders', label: 'Orders', icon: ShoppingBag },
     { id: 'rentals', label: 'Rentals', icon: Calendar },
     { id: 'users', label: 'Users', icon: Users },
+    { id: 'reviews', label: 'Reviews', icon: MessageSquare },
     { id: 'analytics', label: 'Analytics', icon: BarChart2 },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
@@ -228,7 +230,7 @@ export default function AdminDashboard() {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
                   {/* Left Column: Recent Orders */}
                   <div className="lg:col-span-2 space-y-8">
-                    <DashboardOrders limit={3} />
+                    <AdminOrders limit={3} />
                   </div>
 
                   {/* Right Column: Dummy Revenue Chart */}
@@ -271,6 +273,9 @@ export default function AdminDashboard() {
 
             {/* TAB: Analytics */}
             {activeTab === 'analytics' && <AdminAnalytics />}
+
+            {/* TAB: Reviews */}
+            {activeTab === 'reviews' && <AdminReviews />}
 
             {/* TAB: Settings */}
             {activeTab === 'settings' && <AdminSettings />}

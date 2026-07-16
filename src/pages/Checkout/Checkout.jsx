@@ -8,11 +8,13 @@ import DeliverySection from '../../components/checkout/DeliverySection';
 import PaymentSection from '../../components/checkout/PaymentSection';
 import OrderSummarySidebar from '../../components/checkout/OrderSummarySidebar';
 import { useCart } from '../../context/CartContext';
-import { successToast } from '../../utils/toast';
+import { successToast, errorToast, infoToast } from '../../utils/toast';
+import { orderService } from '../../services/orderService';
+import { paymentService } from '../../services/paymentService';
 
 export default function Checkout() {
   const navigate = useNavigate();
-  const { cartItems, getCartTotal, clearCart } = useCart();
+  const { clearCart } = useCart();
   const [step, setStep] = useState(1);
   const [isAgreed, setIsAgreed] = useState(false);
   const [termsError, setTermsError] = useState(false);
@@ -34,20 +36,119 @@ export default function Checkout() {
     type: 'card',
   });
 
-  const handleNextStep = () => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleNextStep = async () => {
+    if (isSubmitting) return;
     if (step === 4) {
       if (!isAgreed) {
         setTermsError(true);
         return;
       }
-      navigate('/order-success', {
-        state: {
-          orderItems: cartItems,
-          total: getCartTotal(),
-        },
-      });
-      clearCart(true);
-      successToast('Order placed successfully!');
+      setIsSubmitting(true);
+      try {
+        const payload = {
+          shippingAddress: {
+            name: address.name,
+            street: address.street,
+            city: address.city,
+            postal: address.postal,
+            phone: address.phone
+          },
+          paymentMethod: payment.type || 'card',
+          deliveryMethod: {
+            name: delivery.name,
+            price: delivery.price
+          }
+        };
+        const response = await orderService.createOrder(payload);
+        if (response.success && response.data) {
+          // Load Razorpay script dynamically
+          const scriptLoaded = await paymentService.loadRazorpayScript();
+          if (!scriptLoaded) {
+            errorToast('Razorpay payment gateway failed to load. Order created with pending payment.');
+            navigate('/orders');
+            return;
+          }
+
+          // Create payment order on Razorpay
+          const paymentOrder = await paymentService.createPaymentOrder(response.data.id);
+          if (!paymentOrder.success || !paymentOrder.data) {
+            errorToast('Failed to initialize payment order. You can try paying later from My Orders.');
+            navigate('/orders');
+            return;
+          }
+
+          const { keyId, amount, currency, id: rzpOrderId } = paymentOrder.data;
+
+          const options = {
+            key: keyId,
+            amount: amount,
+            currency: currency,
+            name: 'GameHub Gaming Marketplace',
+            description: 'Order Checkout Payment',
+            order_id: rzpOrderId,
+            handler: async (paymentResponse) => {
+              try {
+                setIsSubmitting(true);
+                const verifyPayload = {
+                  orderId: response.data.id,
+                  razorpayOrderId: paymentResponse.razorpay_order_id,
+                  razorpayPaymentId: paymentResponse.razorpay_payment_id,
+                  razorpaySignature: paymentResponse.razorpay_signature
+                };
+                const verification = await paymentService.verifyPayment(verifyPayload);
+                if (verification.success) {
+                  successToast('Payment processed successfully!');
+                  navigate('/order-success', {
+                    state: {
+                      orderId: response.data.id,
+                      orderItems: response.data.items,
+                      subtotal: response.data.subtotal,
+                      tax: response.data.tax,
+                      total: response.data.total,
+                      deliveryMethod: response.data.deliveryMethod
+                    },
+                  });
+                  clearCart(true);
+                } else {
+                  errorToast('Payment signature verification failed.');
+                  navigate('/orders');
+                }
+              } catch (err) {
+                console.error(err);
+                errorToast(err.message || 'Payment verification failed.');
+                navigate('/orders');
+              } finally {
+                setIsSubmitting(false);
+              }
+            },
+            modal: {
+              ondismiss: () => {
+                infoToast('Payment checkout closed. You can complete this order payment in My Orders.');
+                navigate('/orders');
+              }
+            },
+            prefill: {
+              name: address.name,
+              contact: address.phone
+            },
+            theme: {
+              color: '#00e5ff'
+            }
+          };
+
+          const rzp = new window.Razorpay(options);
+          rzp.open();
+        } else {
+          errorToast(response.message || 'Failed to place order.');
+        }
+      } catch (err) {
+        console.error(err);
+        errorToast(err.message || 'An error occurred while creating your order.');
+      } finally {
+        setIsSubmitting(false);
+      }
     } else {
       setStep(step + 1);
     }

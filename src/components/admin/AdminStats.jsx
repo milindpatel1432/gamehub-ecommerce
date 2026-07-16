@@ -1,10 +1,49 @@
+import { useState, useEffect } from 'react';
 import { DollarSign, ShoppingBag, Calendar, Users, Database, AlertCircle } from 'lucide-react';
+import { adminService } from '../../services/adminService';
+import LoadingSpinner from '../ui/LoadingSpinner';
 
 export default function AdminStats() {
+  const [statsData, setStatsData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await adminService.getStats();
+        if (res.success && res.data) {
+          setStatsData(res.data);
+        }
+      } catch (err) {
+        console.error('Error loading admin stats:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchStats();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="col-span-2 md:col-span-3 lg:col-span-6 flex justify-center py-8 bg-gaming-card/45 rounded-2xl border border-gaming-border">
+        <LoadingSpinner />
+      </div>
+    );
+  }
+
+  const data = statsData || {
+    totalRevenue: 0,
+    totalOrders: 0,
+    activeRentals: 0,
+    registeredUsers: 0,
+    totalProducts: 0,
+    lowStockItems: 0
+  };
+
   const stats = [
     {
       label: 'Total Revenue',
-      value: '$24,850.50',
+      value: `$${data.totalRevenue.toFixed(2)}`,
       change: '+12.5%',
       icon: DollarSign,
       color: 'text-gaming-cyan',
@@ -12,7 +51,7 @@ export default function AdminStats() {
     },
     {
       label: 'Total Orders',
-      value: '1,248',
+      value: data.totalOrders.toString(),
       change: '+8.2%',
       icon: ShoppingBag,
       color: 'text-gaming-accent',
@@ -20,7 +59,7 @@ export default function AdminStats() {
     },
     {
       label: 'Active Rentals',
-      value: '312',
+      value: data.activeRentals.toString(),
       change: '+18.4%',
       icon: Calendar,
       color: 'text-orange-400',
@@ -28,7 +67,7 @@ export default function AdminStats() {
     },
     {
       label: 'Registered Users',
-      value: '840',
+      value: data.registeredUsers.toString(),
       change: '+5.7%',
       icon: Users,
       color: 'text-green-400',
@@ -36,7 +75,7 @@ export default function AdminStats() {
     },
     {
       label: 'Total Products',
-      value: '180',
+      value: data.totalProducts.toString(),
       change: 'Static',
       icon: Database,
       color: 'text-purple-400',
@@ -44,16 +83,16 @@ export default function AdminStats() {
     },
     {
       label: 'Low Stock Items',
-      value: '3 Items',
-      change: 'Attention Required',
+      value: `${data.lowStockItems} Items`,
+      change: data.lowStockItems > 0 ? 'Attention Required' : 'All Good',
       icon: AlertCircle,
-      color: 'text-red-500',
-      glow: 'shadow-[0_0_15px_rgba(239,68,68,0.2)] border-red-500/35',
+      color: data.lowStockItems > 0 ? 'text-red-500' : 'text-slate-500',
+      glow: data.lowStockItems > 0 ? 'shadow-[0_0_15px_rgba(239,68,68,0.2)] border-red-500/35' : 'border-gaming-border/60',
     },
   ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 text-left">
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 text-left w-full">
       {stats.map((stat) => (
         <div
           key={stat.label}
@@ -66,7 +105,7 @@ export default function AdminStats() {
             <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
               stat.change.startsWith('+')
                 ? 'bg-green-500/10 text-green-400'
-                : stat.change === 'Static'
+                : stat.change === 'Static' || stat.change === 'All Good'
                 ? 'bg-slate-500/10 text-slate-400'
                 : 'bg-red-500/10 text-red-500 animate-pulse'
             }`}>

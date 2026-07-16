@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Search, ChevronDown, Gamepad } from 'lucide-react';
 import ShopHeader from '../../components/shop/ShopHeader';
 import FilterSidebar from '../../components/shop/FilterSidebar';
@@ -10,10 +10,16 @@ import ErrorState from '../../components/ui/ErrorState';
 import EmptyState from '../../components/ui/EmptyState';
 
 export default function Shop() {
-  const [allProducts, setAllProducts] = useState([]);
+  const [products, setProducts] = useState([]);
+  const [totalProducts, setTotalProducts] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Search Debounce States
+  const [searchVal, setSearchVal] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+
   const [sortBy, setSortBy] = useState('newest');
   const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -24,16 +30,66 @@ export default function Shop() {
     categories: [],
   });
 
+  // Debounce search query updates
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setSearchQuery(searchVal);
+      setCurrentPage(1);
+    }, 400);
+    return () => clearTimeout(handler);
+  }, [searchVal]);
+
   const fetchProducts = async () => {
     setIsLoading(true);
     setError(null);
-    try {
-      const res = await productService.getAllProducts();
-      if (res.success && Array.isArray(res.data)) {
-        setAllProducts(res.data);
-      } else {
-        setError('Failed to retrieve products data.');
+
+    // Build API query parameters
+    const queryParams = {
+      page: currentPage,
+      limit: 9,
+      sort: sortBy === 'price-low' ? 'price-asc' : sortBy === 'price-high' ? 'price-desc' : sortBy === 'popular' ? 'rating' : 'newest',
+    };
+
+    if (searchQuery.trim()) {
+      queryParams.search = searchQuery;
+    }
+
+    // Platforms mapping
+    if (filters.platforms && filters.platforms.length > 0) {
+      const platformMapping = { ps5: 'PS5', ps4: 'PS4', xbox: 'XBOX' };
+      queryParams.platform = platformMapping[filters.platforms[0]];
+    }
+
+    // Category types mapping
+    if (filters.types && filters.types.length > 0) {
+      queryParams.category = filters.types[0];
+    }
+
+    // Transaction type mapping (Buy vs Rent)
+    if (filters.transactions && filters.transactions.length > 0) {
+      if (filters.transactions.includes('Buy') && !filters.transactions.includes('Rent')) {
+        queryParams.rentalAvailable = 'false';
+      } else if (filters.transactions.includes('Rent') && !filters.transactions.includes('Buy')) {
+        queryParams.rentalAvailable = 'true';
       }
+    }
+
+    // Custom sidebar list items mapping
+    if (filters.categories && filters.categories.length > 0) {
+      const catName = filters.categories[0];
+      if (catName === 'PC Gaming') queryParams.platform = 'PC';
+      else if (catName === 'Xbox Series X') queryParams.platform = 'XBOX';
+      else if (catName === 'PlayStation 5') queryParams.platform = 'PS5';
+      else if (catName === 'Game CDs') queryParams.category = 'Games';
+      else if (catName === 'Accessories') queryParams.category = 'Hardware';
+    }
+
+    try {
+      const res = await productService.getAllProducts(queryParams);
+      const productsList = res?.data || [];
+      setProducts(Array.isArray(productsList) ? productsList : []);
+      setTotalProducts(res?.totalProducts || 0);
+      setTotalPages(res?.totalPages || 1);
     } catch (err) {
       console.error(err);
       setError(err.message || 'Failed to connect to backend server.');
@@ -42,62 +98,15 @@ export default function Shop() {
     }
   };
 
+  // Trigger load on state adjustments
   useEffect(() => {
     fetchProducts();
-  }, []);
+  }, [currentPage, sortBy, searchQuery, filters]);
 
   const handleFilterChange = (newFilters) => {
     setFilters(newFilters);
-    setCurrentPage(1); // Reset page to 1 on filter update
+    setCurrentPage(1);
   };
-
-  // Filtered and Sorted Products logic
-  const filteredProducts = useMemo(() => {
-    return allProducts
-      .filter((prod) => {
-        // 1. Search filter by title
-        if (searchQuery.trim() && !prod.title.toLowerCase().includes(searchQuery.toLowerCase())) {
-          return false;
-        }
-        // 2. Platform filter
-        if (filters.platforms && filters.platforms.length > 0) {
-          const mapping = { ps5: 'PS5', ps4: 'PS4', xbox: 'XBOX' };
-          const matched = filters.platforms.some((p) => prod.platform === mapping[p]);
-          if (!matched) return false;
-        }
-        // 3. Product Type filter
-        if (filters.types && filters.types.length > 0) {
-          if (!filters.types.includes(prod.category)) return false;
-        }
-        // 4. Transaction Type filter
-        if (filters.transactions && filters.transactions.length > 0) {
-          const hasBuy = filters.transactions.includes('Buy') && prod.buyPrice !== null;
-          const hasRent = filters.transactions.includes('Rent') && prod.rentPrice !== null;
-          if (!hasBuy && !hasRent) return false;
-        }
-        // 5. Category filter using categories.js mapping
-        if (filters.categories && filters.categories.length > 0) {
-          const matchesCategory = filters.categories.some((catName) => {
-            if (catName === 'PC Gaming') return prod.platform === 'PC';
-            if (catName === 'Xbox Series X') return prod.platform === 'XBOX';
-            if (catName === 'PlayStation 5') return prod.platform === 'PS5' || prod.category === 'Consoles';
-            if (catName === 'Game CDs') return prod.category === 'Games';
-            if (catName === 'Accessories') return prod.category === 'Hardware';
-            return false;
-          });
-          if (!matchesCategory) return false;
-        }
-
-        return true;
-      })
-      .sort((a, b) => {
-        if (sortBy === 'price-low') return a.buyPrice - b.buyPrice;
-        if (sortBy === 'price-high') return b.buyPrice - a.buyPrice;
-        if (sortBy === 'popular') return b.reviews - a.reviews;
-        // default 'newest'
-        return new Date(b.dateAdded) - new Date(a.dateAdded);
-      });
-  }, [allProducts, searchQuery, filters, sortBy]);
 
   const sortOptions = [
     { value: 'price-low', label: 'Price: Low to High' },
@@ -113,7 +122,7 @@ export default function Shop() {
       <div className="mx-auto max-w-7xl space-y-8">
         
         {/* Header */}
-        <ShopHeader totalProducts={filteredProducts.length} />
+        <ShopHeader totalProducts={totalProducts} />
 
         {/* Toolbar: Search and Sort */}
         <div className="w-full flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 p-4 rounded-2xl bg-gaming-card/25 border border-gaming-border">
@@ -125,8 +134,8 @@ export default function Shop() {
             <input
               type="text"
               placeholder="Search games, consoles, accessories..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              value={searchVal}
+              onChange={(e) => setSearchVal(e.target.value)}
               className="w-full h-12 pl-12 pr-4 rounded-xl bg-gaming-black/60 border border-gaming-border text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-gaming-cyan/60 transition-all"
             />
           </div>
@@ -151,6 +160,7 @@ export default function Shop() {
                       onClick={() => {
                         setSortBy(opt.value);
                         setSortDropdownOpen(false);
+                        setCurrentPage(1);
                       }}
                       className={`w-full text-left rounded-lg px-4 py-2.5 text-xs font-semibold tracking-wide transition-all cursor-pointer ${
                         sortBy === opt.value
@@ -182,31 +192,25 @@ export default function Shop() {
                 description={error} 
                 onRetry={fetchProducts} 
               />
-            ) : allProducts.length === 0 ? (
-              <EmptyState
-                icon={Gamepad}
-                title="No Games Found"
-                description="We couldn't find any products in our database. Please check back later."
-              />
-            ) : filteredProducts.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-                {filteredProducts.map((product) => (
-                  <ProductCard key={product.id} product={product} />
-                ))}
-              </div>
-            ) : (
+            ) : products.length === 0 ? (
               <EmptyState
                 icon={Gamepad}
                 title="No Match Found"
                 description="No products match your active search or filter criteria. Try adjusting your filters."
               />
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                {products.map((product) => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
+              </div>
             )}
 
             {/* Pagination Controls */}
-            {!isLoading && !error && filteredProducts.length > 0 && (
+            {!isLoading && !error && products.length > 0 && (
               <Pagination
                 currentPage={currentPage}
-                totalPages={12}
+                totalPages={totalPages}
                 onPageChange={(page) => setCurrentPage(page)}
               />
             )}

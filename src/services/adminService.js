@@ -62,6 +62,16 @@ export const adminService = {
     return response.data;
   },
 
+  toggleBlockUser: async (id) => {
+    const response = await axiosInstance.put(`${API_ENDPOINTS.ADMIN.USERS}/${id}/block`);
+    return response.data;
+  },
+
+  deleteUser: async (id) => {
+    const response = await axiosInstance.delete(`${API_ENDPOINTS.ADMIN.USERS}/${id}`);
+    return response.data;
+  },
+
   getAnalytics: async () => {
     const response = await axiosInstance.get(API_ENDPOINTS.ADMIN.ANALYTICS);
     return response.data;

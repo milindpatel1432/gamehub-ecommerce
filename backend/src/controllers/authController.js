@@ -76,6 +76,13 @@ export const login = async (req, res, next) => {
       });
     }
 
+    if (user.isBlocked) {
+      return res.status(403).json({
+        success: false,
+        message: 'Your account has been suspended/blocked. Please contact support.',
+      });
+    }
+
     const isMatch = await user.comparePassword(password);
 
     if (!isMatch) {
