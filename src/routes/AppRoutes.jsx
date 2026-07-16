@@ -11,7 +11,7 @@ import Register from '../pages/Auth/Register';
 import ForgotPassword from '../pages/Auth/ForgotPassword';
 import Dashboard from '../pages/Dashboard/Dashboard';
 import AdminDashboard from '../pages/Admin/AdminDashboard';
-import ProtectedRoute from './ProtectedRoute';
+import ProtectedRoute from '../components/auth/ProtectedRoute';
 import GuestRoute from './GuestRoute';
 import PageNotFound from '../pages/Error/PageNotFound';
 import Unauthorized from '../pages/Error/Unauthorized';
@@ -109,7 +109,14 @@ export default function AppRoutes() {
       />
 
       {/* Admin and Error Routes */}
-      <Route path="/admin" element={<AdminDashboard />} />
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute>
+            <AdminDashboard />
+          </ProtectedRoute>
+        }
+      />
       <Route path="/unauthorized" element={<Unauthorized />} />
       <Route path="/server-error" element={<ServerError />} />
       
