@@ -4,26 +4,73 @@ import ProductGallery from '../../components/product/ProductGallery';
 import ProductTabs from '../../components/product/ProductTabs';
 import ProductInfoPanel from '../../components/product/ProductInfoPanel';
 import ProductFAQ from '../../components/product/ProductFAQ';
-import { relatedProducts, shopProducts } from '../../data/games';
 import { useWishlist } from '../../context/WishlistContext';
 import EmptyState from '../../components/ui/EmptyState';
+import LoadingSpinner from '../../components/ui/LoadingSpinner';
+import ErrorState from '../../components/ui/ErrorState';
+import { productService } from '../../services/productService';
+import { useState, useEffect } from 'react';
 
 export default function ProductDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { isWishlisted, addToWishlist, removeFromWishlist } = useWishlist();
 
-  const productExists = shopProducts.some((p) => p.id === parseInt(id));
+  const [product, setProduct] = useState(null);
+  const [relatedProducts, setRelatedProducts] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  if (id && !productExists) {
+  const fetchProductDetails = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const res = await productService.getProductById(id);
+      if (res.success && res.data) {
+        setProduct(res.data);
+        
+        // Fetch related products of the same category
+        const allProductsRes = await productService.getAllProducts();
+        if (allProductsRes.success && Array.isArray(allProductsRes.data)) {
+          const related = allProductsRes.data
+            .filter((p) => p.category === res.data.category && p.id !== res.data.id)
+            .slice(0, 4);
+          setRelatedProducts(related);
+        }
+      } else {
+        setError('Product not found.');
+      }
+    } catch (err) {
+      console.error(err);
+      setError(err.message || 'Failed to fetch product details.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (id) {
+      fetchProductDetails();
+    }
+  }, [id]);
+
+  if (isLoading) {
     return (
       <div className="w-full bg-gaming-dark py-16 px-4 flex items-center justify-center min-h-[70vh]">
-        <EmptyState
+        <LoadingSpinner text="Fetching product details..." />
+      </div>
+    );
+  }
+
+  if (error || !product) {
+    return (
+      <div className="w-full bg-gaming-dark py-16 px-4 flex items-center justify-center min-h-[70vh]">
+        <ErrorState
           icon={Gamepad}
           title="Product Not Found"
-          description="The gaming equipment or titles you requested coordinates for do not exist."
-          actionText="Back to Shop"
-          onAction={() => navigate('/shop')}
+          description={error || "The gaming equipment or titles you requested coordinates for do not exist."}
+          retryText="Back to Shop"
+          onRetry={() => navigate('/shop')}
         />
       </div>
     );
@@ -39,22 +86,22 @@ export default function ProductDetails() {
           <span>&gt;</span>
           <Link to="/shop" className="hover:text-gaming-cyan transition-colors">Shop</Link>
           <span>&gt;</span>
-          <span className="text-slate-500">PS5</span>
+          <span className="text-slate-500">{product.platform || product.category}</span>
           <span>&gt;</span>
-          <span className="text-gaming-cyan">Cyber Odyssey 2077</span>
+          <span className="text-gaming-cyan">{product.title}</span>
         </nav>
 
         {/* Main Details Panel */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
           {/* Left Column: Gallery & Tabs */}
           <div className="lg:col-span-7 space-y-8">
-            <ProductGallery />
-            <ProductTabs />
+            <ProductGallery product={product} />
+            <ProductTabs product={product} />
           </div>
 
           {/* Right Column: Info & FAQs */}
           <div className="lg:col-span-5 space-y-8">
-            <ProductInfoPanel />
+            <ProductInfoPanel product={product} />
             <ProductFAQ />
           </div>
         </div>
@@ -94,9 +141,9 @@ export default function ProductDetails() {
                       className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
                     />
                   </Link>
-                  {prod.badge && (
+                  {prod.isSale && (
                     <span className="absolute bottom-4 left-4 z-10 text-[9px] uppercase font-bold tracking-wider text-gaming-black bg-gaming-cyan rounded px-2.5 py-0.5">
-                      {prod.badge}
+                      Sale
                     </span>
                   )}
 
@@ -110,10 +157,10 @@ export default function ProductDetails() {
                         addToWishlist({
                           id: prod.id,
                           title: prod.title,
-                          platform: 'PS5',
-                          buyPrice: parseFloat(prod.price.replace('$', '')),
+                          platform: prod.platform || 'PS5',
+                          buyPrice: prod.buyPrice,
                           image: prod.image,
-                          category: 'Games',
+                          category: prod.category || 'Games',
                         });
                       }
                     }}
@@ -132,10 +179,10 @@ export default function ProductDetails() {
                       </h3>
                     </Link>
                     <p className="text-[10px] text-slate-500 uppercase font-semibold">
-                      {prod.genre}
+                      {prod.platform} | {prod.category}
                     </p>
                     <p className="text-base font-bold text-white font-gaming mt-2">
-                      {prod.price}
+                      ${prod.buyPrice}
                     </p>
                   </div>
 

@@ -1,12 +1,18 @@
-import { useState, useMemo } from 'react';
-import { Search, ChevronDown } from 'lucide-react';
+import { useState, useMemo, useEffect } from 'react';
+import { Search, ChevronDown, Gamepad } from 'lucide-react';
 import ShopHeader from '../../components/shop/ShopHeader';
 import FilterSidebar from '../../components/shop/FilterSidebar';
 import ProductCard from '../../components/shop/ProductCard';
 import Pagination from '../../components/shop/Pagination';
-import { shopProducts as allProducts } from '../../data/games';
+import { productService } from '../../services/productService';
+import SkeletonGrid from '../../components/ui/SkeletonGrid';
+import ErrorState from '../../components/ui/ErrorState';
+import EmptyState from '../../components/ui/EmptyState';
 
 export default function Shop() {
+  const [allProducts, setAllProducts] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('newest');
   const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
@@ -17,6 +23,28 @@ export default function Shop() {
     transactions: [],
     categories: [],
   });
+
+  const fetchProducts = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const res = await productService.getAllProducts();
+      if (res.success && Array.isArray(res.data)) {
+        setAllProducts(res.data);
+      } else {
+        setError('Failed to retrieve products data.');
+      }
+    } catch (err) {
+      console.error(err);
+      setError(err.message || 'Failed to connect to backend server.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
 
   const handleFilterChange = (newFilters) => {
     setFilters(newFilters);
@@ -146,20 +174,36 @@ export default function Shop() {
 
           {/* Products List & Pagination */}
           <div className="flex-1 space-y-10 w-full">
-            {filteredProducts.length > 0 ? (
+            {isLoading ? (
+              <SkeletonGrid count={6} />
+            ) : error ? (
+              <ErrorState 
+                title="Failed to Load Products" 
+                description={error} 
+                onRetry={fetchProducts} 
+              />
+            ) : allProducts.length === 0 ? (
+              <EmptyState
+                icon={Gamepad}
+                title="No Games Found"
+                description="We couldn't find any products in our database. Please check back later."
+              />
+            ) : filteredProducts.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
                 {filteredProducts.map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}
               </div>
             ) : (
-              <div className="text-center py-20 border border-dashed border-gaming-border rounded-2xl">
-                <p className="text-slate-400 font-semibold">No products found matching your active filters.</p>
-              </div>
+              <EmptyState
+                icon={Gamepad}
+                title="No Match Found"
+                description="No products match your active search or filter criteria. Try adjusting your filters."
+              />
             )}
 
             {/* Pagination Controls */}
-            {filteredProducts.length > 0 && (
+            {!isLoading && !error && filteredProducts.length > 0 && (
               <Pagination
                 currentPage={currentPage}
                 totalPages={12}

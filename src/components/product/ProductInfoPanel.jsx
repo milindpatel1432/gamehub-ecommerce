@@ -5,32 +5,32 @@ import { useNavigate } from 'react-router-dom';
 import { useWishlist } from '../../context/WishlistContext';
 import { useCart } from '../../context/CartContext';
 
-export default function ProductInfoPanel() {
+export default function ProductInfoPanel({ product }) {
   const navigate = useNavigate();
   const { isWishlisted, addToWishlist, removeFromWishlist } = useWishlist();
   const { addToCart } = useCart();
   
-  const productId = 1;
+  const productId = product?.id;
   const isWished = isWishlisted(productId);
+
+  const [purchaseMode, setPurchaseMode] = useState(product?.isRental ? 'rent' : 'buy');
+  const [shareSuccess, setShareSuccess] = useState(false);
 
   const handleWishlistToggle = () => {
     if (isWished) {
       removeFromWishlist(productId);
     } else {
       addToWishlist({
-        id: productId,
-        title: 'Cyber Odyssey 2077',
-        platform: 'PS5',
-        buyPrice: 54.99,
-        rentPrice: 12,
-        image: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=500&auto=format&fit=crop&q=80',
-        category: 'Games',
+        id: product.id,
+        title: product.title,
+        platform: product.platform,
+        buyPrice: product.buyPrice,
+        rentPrice: product.rentPrice,
+        image: product.image,
+        category: product.category,
       });
     }
   };
-
-  const [purchaseMode, setPurchaseMode] = useState('buy'); // 'buy' or 'rent'
-  const [shareSuccess, setShareSuccess] = useState(false);
 
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href);
@@ -38,34 +38,40 @@ export default function ProductInfoPanel() {
     setTimeout(() => setShareSuccess(false), 2000);
   };
 
+  if (!product) return null;
+
   return (
     <div className="w-full text-left space-y-6">
       
       {/* Badges & Rating */}
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-2">
-          <span className="text-[10px] uppercase font-bold tracking-wider text-gaming-cyan bg-gaming-black/85 border border-gaming-cyan/35 rounded px-2.5 py-0.5">
-            PS5
-          </span>
-          <span className="text-[10px] uppercase font-bold tracking-wider text-gaming-cyan bg-gaming-black/85 border border-gaming-cyan/35 rounded px-2.5 py-0.5">
-            RPG
-          </span>
+          {product.platform && (
+            <span className="text-[10px] uppercase font-bold tracking-wider text-gaming-cyan bg-gaming-black/85 border border-gaming-cyan/35 rounded px-2.5 py-0.5">
+              {product.platform}
+            </span>
+          )}
+          {product.category && (
+            <span className="text-[10px] uppercase font-bold tracking-wider text-gaming-cyan bg-gaming-black/85 border border-gaming-cyan/35 rounded px-2.5 py-0.5">
+              {product.category}
+            </span>
+          )}
         </div>
         
         <div className="flex items-center gap-1 text-yellow-500">
           <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />
-          <span className="text-sm font-bold text-white">4.8</span>
-          <span className="text-xs text-slate-500">(1.2k reviews)</span>
+          <span className="text-sm font-bold text-white">{product.rating}</span>
+          <span className="text-xs text-slate-500">({product.reviews} reviews)</span>
         </div>
       </div>
 
       {/* Product Title */}
       <div className="space-y-1.5">
         <h2 className="font-gaming text-3xl sm:text-4xl font-extrabold text-white tracking-wide">
-          Cyber Odyssey 2077
+          {product.title}
         </h2>
         <p className="text-sm text-slate-400">
-          Condition: <span className="text-white font-semibold">Brand New (Retail Box)</span>
+          Condition: <span className="text-white font-semibold">{product.condition}</span>
         </p>
       </div>
 
@@ -73,43 +79,49 @@ export default function ProductInfoPanel() {
       <div className="rounded-2xl border border-gaming-border bg-gaming-card/40 p-5 space-y-6">
         
         {/* Toggle Mode Buttons */}
-        <div className="grid grid-cols-2 gap-2 bg-gaming-black/60 rounded-xl p-1 border border-gaming-border/60">
-          <button
-            onClick={() => setPurchaseMode('buy')}
-            className={`h-11 rounded-lg text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
-              purchaseMode === 'buy'
-                ? 'bg-gaming-accent text-white shadow-[0_0_12px_rgba(0,136,255,0.3)]'
-                : 'text-slate-500 hover:text-slate-300'
-            }`}
-          >
-            Buy Now
-          </button>
-          <button
-            onClick={() => setPurchaseMode('rent')}
-            className={`h-11 rounded-lg text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
-              purchaseMode === 'rent'
-                ? 'bg-gaming-accent text-white shadow-[0_0_12px_rgba(0,136,255,0.3)]'
-                : 'text-slate-500 hover:text-slate-300'
-            }`}
-          >
-            Rent Game
-          </button>
-        </div>
+        {product.isRental && (
+          <div className="grid grid-cols-2 gap-2 bg-gaming-black/60 rounded-xl p-1 border border-gaming-border/60">
+            <button
+              onClick={() => setPurchaseMode('buy')}
+              className={`h-11 rounded-lg text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                purchaseMode === 'buy'
+                  ? 'bg-gaming-accent text-white shadow-[0_0_12px_rgba(0,136,255,0.3)]'
+                  : 'text-slate-500 hover:text-slate-300'
+              }`}
+            >
+              Buy Now
+            </button>
+            <button
+              onClick={() => setPurchaseMode('rent')}
+              className={`h-11 rounded-lg text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                purchaseMode === 'rent'
+                  ? 'bg-gaming-accent text-white shadow-[0_0_12px_rgba(0,136,255,0.3)]'
+                  : 'text-slate-500 hover:text-slate-300'
+              }`}
+            >
+              Rent Game
+            </button>
+          </div>
+        )}
 
         {/* Dynamic Price Display */}
         <div className="space-y-4">
           {purchaseMode === 'buy' ? (
             <div className="flex items-baseline gap-3">
-              <span className="text-4xl font-extrabold font-gaming text-white tracking-wide">$59.99</span>
-              <span className="text-sm text-slate-500 line-through font-semibold">$69.99</span>
-              <span className="text-[10px] font-bold text-white bg-orange-600 px-2 py-0.5 rounded">
-                -15%
-              </span>
+              <span className="text-4xl font-extrabold font-gaming text-white tracking-wide">${product.buyPrice}</span>
+              {product.originalPrice && (
+                <>
+                  <span className="text-sm text-slate-500 line-through font-semibold">${product.originalPrice}</span>
+                  <span className="text-[10px] font-bold text-white bg-orange-600 px-2 py-0.5 rounded">
+                    -{Math.round((1 - product.buyPrice / product.originalPrice) * 100)}%
+                  </span>
+                </>
+              )}
             </div>
           ) : (
             <div className="space-y-2">
               <div className="flex items-baseline gap-2">
-                <span className="text-4xl font-extrabold font-gaming text-gaming-cyan tracking-wide">$12.00</span>
+                <span className="text-4xl font-extrabold font-gaming text-gaming-cyan tracking-wide">${product.rentPrice}</span>
                 <span className="text-xs text-slate-400 font-semibold">/ weekly</span>
               </div>
               <div className="flex items-center gap-2 p-3.5 rounded-xl border border-gaming-cyan/20 bg-gaming-cyan/5 text-xs text-gaming-cyan">
@@ -121,10 +133,17 @@ export default function ProductInfoPanel() {
 
           {/* Delivery & Stock indicators */}
           <div className="space-y-3.5 pt-2 text-sm">
-            <div className="flex items-center gap-3 text-green-500">
-              <Box className="h-5 w-5" />
-              <span className="font-semibold">In Stock - Ready to Ship</span>
-            </div>
+            {product.stock > 0 ? (
+              <div className="flex items-center gap-3 text-green-500">
+                <Box className="h-5 w-5" />
+                <span className="font-semibold">In Stock ({product.stock} units) - Ready to Ship</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-3 text-red-500">
+                <Box className="h-5 w-5" />
+                <span className="font-semibold">Out of Stock</span>
+              </div>
+            )}
             
             <div className="flex items-center gap-3 text-slate-300">
               <Calendar className="h-5 w-5 text-slate-500" />
@@ -139,13 +158,13 @@ export default function ProductInfoPanel() {
           <button
             onClick={() => {
               addToCart({
-                id: 1, // Cyber Odyssey 2077 id
-                title: 'Cyber Odyssey 2077',
-                platform: 'PS5',
+                id: product.id,
+                title: product.title,
+                platform: product.platform,
                 mode: purchaseMode,
-                price: purchaseMode === 'buy' ? 54.99 : 12.00,
-                originalPrice: purchaseMode === 'buy' ? 69.99 : 15.00,
-                image: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=500&auto=format&fit=crop&q=80',
+                price: purchaseMode === 'buy' ? product.buyPrice : product.rentPrice,
+                originalPrice: purchaseMode === 'buy' ? (product.originalPrice || product.buyPrice) : (product.rentPrice * 1.2),
+                image: product.image,
                 deposit: purchaseMode === 'rent' ? 40.00 : 0,
               });
               navigate('/cart');
@@ -193,3 +212,4 @@ export default function ProductInfoPanel() {
     </div>
   );
 }
+

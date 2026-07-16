@@ -1,15 +1,17 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Sparkles } from 'lucide-react';
+import { ArrowLeft, Sparkles, Gamepad } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import CartItemCard from '../../components/cart/CartItemCard';
 import CouponSection from '../../components/cart/CouponSection';
 import OrderSummary from '../../components/cart/OrderSummary';
 import FrequentlyBought from '../../components/cart/FrequentlyBought';
 import { useCart } from '../../context/CartContext';
+import LoadingSpinner from '../../components/ui/LoadingSpinner';
+import ErrorState from '../../components/ui/ErrorState';
 
 export default function Cart() {
-  const { cartItems, removeFromCart, updateQuantity, addToCart } = useCart();
+  const { cartItems, removeFromCart, updateQuantity, addToCart, isLoading, error, fetchCart } = useCart();
 
   const [discountPercent, setDiscountPercent] = useState(0);
   const [flatDiscount, setFlatDiscount] = useState(0);
@@ -97,7 +99,15 @@ export default function Cart() {
           </h1>
         </div>
 
-        {cartItems.length > 0 ? (
+        {isLoading ? (
+          <LoadingSpinner text="Retrieving your shopping cart..." />
+        ) : error ? (
+          <ErrorState
+            title="Failed to Load Cart"
+            description={error}
+            onRetry={fetchCart}
+          />
+        ) : cartItems.length > 0 ? (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
             
             {/* Left Column: Items, Coupon, Recommendations */}

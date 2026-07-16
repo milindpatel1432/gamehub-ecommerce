@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export default function ProductTabs() {
+export default function ProductTabs({ product }) {
   const [activeTab, setActiveTab] = useState('description');
 
   const tabs = [
@@ -46,27 +46,27 @@ export default function ProductTabs() {
           >
             {activeTab === 'description' && (
               <p>
-                Dive into the neon-drenched depths of Cyber Odyssey 2077, where humanity and technology merge in a struggle for survival. Explore a vast open world spanning from the glittering heights of Sky-Towers to the grime of the Undercity. Forge your own path with deep RPG mechanics, cybernetic upgrades, and a branching narrative that reacts to your every choice.
+                {product?.description || "No description available."}
               </p>
             )}
 
             {activeTab === 'specifications' && (
               <div className="grid grid-cols-2 gap-y-4 gap-x-8 max-w-md pt-2">
                 <div>
-                  <span className="text-xs text-slate-500 uppercase font-semibold">Publisher</span>
-                  <p className="text-sm font-bold text-white mt-0.5">Neon Interactive Games</p>
+                  <span className="text-xs text-slate-500 uppercase font-semibold">Publisher/Brand</span>
+                  <p className="text-sm font-bold text-white mt-0.5">{product?.brand || 'N/A'}</p>
                 </div>
                 <div>
-                  <span className="text-xs text-slate-500 uppercase font-semibold">Genre</span>
-                  <p className="text-sm font-bold text-white mt-0.5">RPG / Cyberpunk / Action</p>
+                  <span className="text-xs text-slate-500 uppercase font-semibold">Genre/Category</span>
+                  <p className="text-sm font-bold text-white mt-0.5">{product?.category || 'N/A'}</p>
                 </div>
                 <div>
                   <span className="text-xs text-slate-500 uppercase font-semibold">Platforms</span>
-                  <p className="text-sm font-bold text-white mt-0.5">PlayStation 5, PC, Xbox Series X</p>
+                  <p className="text-sm font-bold text-white mt-0.5">{product?.platform || 'N/A'}</p>
                 </div>
                 <div>
-                  <span className="text-xs text-slate-500 uppercase font-semibold">Release Date</span>
-                  <p className="text-sm font-bold text-white mt-0.5">October 24, 2026</p>
+                  <span className="text-xs text-slate-500 uppercase font-semibold">Condition</span>
+                  <p className="text-sm font-bold text-white mt-0.5">{product?.condition || 'N/A'}</p>
                 </div>
               </div>
             )}

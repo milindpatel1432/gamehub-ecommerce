@@ -1,8 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import axios from 'axios';
-
-axios.defaults.baseURL = 'http://localhost:5000/api/v1';
-axios.defaults.withCredentials = true;
+import api from '../services/api';
 
 const AuthContext = createContext(null);
 
@@ -15,7 +12,7 @@ export function AuthProvider({ children }) {
   // ==========================
   const checkAuth = async () => {
     try {
-      const response = await axios.get('/auth/profile');
+      const response = await api.get('/auth/profile');
       if (response.data?.success && response.data?.user) {
         setUser(response.data.user);
         return { success: true, user: response.data.user };
@@ -43,7 +40,7 @@ export function AuthProvider({ children }) {
   // ==========================
   const login = async (email, password) => {
     try {
-      const response = await axios.post('/auth/login', {
+      const response = await api.post('/auth/login', {
         email,
         password,
       });
@@ -66,7 +63,7 @@ export function AuthProvider({ children }) {
   // ==========================
   const register = async (userData) => {
     try {
-      await axios.post('/auth/register', userData);
+      await api.post('/auth/register', userData);
       return {
         success: true,
         message: 'Registration successful',
@@ -87,7 +84,7 @@ export function AuthProvider({ children }) {
   // ==========================
   const logout = async () => {
     try {
-      await axios.post('/auth/logout');
+      await api.post('/auth/logout');
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
