@@ -36,7 +36,11 @@ export default function LoginForm() {
     const res = await login(data.email, data.password);
     if (res.success) {
       successToast('Welcome back! Logged in successfully.');
-      navigate('/dashboard');
+      if (res.user?.role === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/dashboard');
+      }
     } else {
       errorToast(res.error);
     }

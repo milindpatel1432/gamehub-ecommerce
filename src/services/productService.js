@@ -1,4 +1,5 @@
 import api from './api';
+import { adminService } from './adminService';
 
 const mapProduct = (p) => {
   if (!p) return null;
@@ -143,6 +144,77 @@ export const productService = {
       };
     } catch (err) {
       console.error('Error fetching featured products:', err);
+      return {
+        success: false,
+        data: []
+      };
+    }
+  },
+
+  createProduct: async (productData) => {
+    try {
+      const response = await api.post('/products', productData);
+      return {
+        success: response.data?.success ?? false,
+        data: response.data?.data
+      };
+    } catch (err) {
+      console.error('Error creating product:', err);
+      return {
+        success: false,
+        error: err.response?.data?.message || 'Failed to create product'
+      };
+    }
+  },
+
+  updateProduct: async (id, productData) => {
+    try {
+      const response = await api.put(`/products/${id}`, productData);
+      return {
+        success: response.data?.success ?? false,
+        data: response.data?.data
+      };
+    } catch (err) {
+      console.error('Error updating product:', err);
+      return {
+        success: false,
+        error: err.response?.data?.message || 'Failed to update product'
+      };
+    }
+  },
+
+  deleteProduct: async (id) => {
+    try {
+      const response = await api.delete(`/products/${id}`);
+      return {
+        success: response.data?.success ?? false,
+        message: response.data?.message
+      };
+    } catch (err) {
+      console.error('Error deleting product:', err);
+      return {
+        success: false,
+        error: err.response?.data?.message || 'Failed to delete product'
+      };
+    }
+  },
+
+  getAllProductsAdmin: async () => {
+    try {
+      const [gamesRes, consolesRes] = await Promise.all([
+        adminService.getGames(),
+        adminService.getConsoles()
+      ]);
+      const games = gamesRes.data || [];
+      const consoles = consolesRes.data || [];
+      const allRaw = [...games, ...consoles];
+      const mapped = allRaw.map(mapProduct).filter(Boolean);
+      return {
+        success: true,
+        data: mapped
+      };
+    } catch (err) {
+      console.error('Error fetching admin products:', err);
       return {
         success: false,
         data: []

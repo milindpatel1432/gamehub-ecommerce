@@ -7,6 +7,7 @@ import paymentRoutes from './paymentRoutes.js';
 import adminRoutes from './adminRoutes.js';
 import reviewRoutes from './reviewRoutes.js';
 import uploadRoutes from './uploadRoutes.js';
+import categoryRoutes from './categoryRoutes.js';
 
 export {
   authRoutes,
@@ -17,5 +18,6 @@ export {
   paymentRoutes,
   adminRoutes,
   reviewRoutes,
-  uploadRoutes
+  uploadRoutes,
+  categoryRoutes
 };

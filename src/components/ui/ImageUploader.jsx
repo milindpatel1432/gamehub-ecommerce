@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { UploadCloud, X, Image as ImageIcon } from 'lucide-react';
+import { UploadCloud, X } from 'lucide-react';
 import { uploadService } from '../../services/uploadService';
 import { successToast, errorToast } from '../../utils/toast';
 

@@ -11,6 +11,16 @@ import Register from '../pages/Auth/Register';
 import ForgotPassword from '../pages/Auth/ForgotPassword';
 import Dashboard from '../pages/Dashboard/Dashboard';
 import AdminDashboard from '../pages/Admin/AdminDashboard';
+import AdminLayout from '../pages/Admin/AdminLayout';
+import AdminProducts from '../pages/Admin/AdminProducts';
+import AdminCategories from '../pages/Admin/AdminCategories';
+import AdminCoupons from '../pages/Admin/AdminCoupons';
+import AdminOrders from '../components/admin/AdminOrders';
+import AdminRentals from '../components/admin/AdminRentals';
+import AdminUsers from '../components/admin/AdminUsers';
+import AdminReviews from '../components/admin/AdminReviews';
+import AdminAnalytics from '../components/admin/AdminAnalytics';
+import AdminSettings from '../components/admin/AdminSettings';
 import ProtectedRoute from '../components/auth/ProtectedRoute';
 import GuestRoute from './GuestRoute';
 import PageNotFound from '../pages/Error/PageNotFound';
@@ -122,11 +132,22 @@ export default function AppRoutes() {
       <Route
         path="/admin"
         element={
-          <ProtectedRoute>
-            <AdminDashboard />
+          <ProtectedRoute adminOnly={true}>
+            <AdminLayout />
           </ProtectedRoute>
         }
-      />
+      >
+        <Route index element={<AdminDashboard />} />
+        <Route path="products" element={<AdminProducts />} />
+        <Route path="categories" element={<AdminCategories />} />
+        <Route path="orders" element={<AdminOrders />} />
+        <Route path="rentals" element={<AdminRentals />} />
+        <Route path="users" element={<AdminUsers />} />
+        <Route path="reviews" element={<AdminReviews />} />
+        <Route path="coupons" element={<AdminCoupons />} />
+        <Route path="analytics" element={<AdminAnalytics />} />
+        <Route path="settings" element={<AdminSettings />} />
+      </Route>
       <Route path="/unauthorized" element={<Unauthorized />} />
       <Route path="/server-error" element={<ServerError />} />
       
