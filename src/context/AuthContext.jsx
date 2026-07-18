@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import api from '../services/api';
+import { LOCAL_STORAGE_KEYS } from '../config/constants';
 
 const AuthContext = createContext(null);
 
@@ -46,6 +47,10 @@ export function AuthProvider({ children }) {
       });
 
       if (response.data?.success && response.data?.user) {
+        const token = response.data?.token;
+        if (token) {
+          localStorage.setItem(LOCAL_STORAGE_KEYS.AUTH_TOKEN, token);
+        }
         setUser(response.data.user);
         return { success: true };
       }
@@ -88,6 +93,7 @@ export function AuthProvider({ children }) {
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
+      localStorage.removeItem(LOCAL_STORAGE_KEYS.AUTH_TOKEN);
       setUser(null);
     }
   };

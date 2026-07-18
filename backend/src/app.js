@@ -11,12 +11,24 @@ const app = express();
 // ================================
 // Global Middlewares
 // ================================
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+  process.env.CORS_ORIGIN
+].filter(Boolean).map(o => o.trim().replace(/\/$/, ''));
+
 app.use(cors({
-  origin: [
-    'http://localhost:5173',
-    'http://127.0.0.1:5173',
-    process.env.CORS_ORIGIN
-  ].filter(Boolean),
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps, curl, postman)
+    if (!origin) return callback(null, true);
+    
+    const sanitizedOrigin = origin.trim().replace(/\/$/, '');
+    if (allowedOrigins.includes(sanitizedOrigin)) {
+      callback(null, true);
+    } else {
+      callback(null, false);
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
