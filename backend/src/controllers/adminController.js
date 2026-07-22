@@ -1,6 +1,7 @@
 import User from '../models/User.js';
 import Order from '../models/Order.js';
 import Product from '../models/Product.js';
+import Category from '../models/Category.js';
 
 const slugify = (text) => {
   return text
@@ -37,39 +38,49 @@ const generateUniqueSlug = async (title, excludeId = null) => {
 // ==========================================
 export const getStats = async (req, res, next) => {
   try {
-    // 1. Total Revenue (from paid orders)
     const paidOrders = await Order.find({ paymentStatus: 'paid' });
     const totalRevenue = paidOrders.reduce((sum, o) => sum + (o.total || 0), 0);
 
-    // 2. Total Orders count
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const monthlyPaidOrders = await Order.find({
+      paymentStatus: 'paid',
+      createdAt: { $gte: startOfMonth }
+    });
+    const monthlyRevenue = monthlyPaidOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const todaysOrders = await Order.countDocuments({
+      createdAt: { $gte: startOfToday }
+    });
+
     const totalOrders = await Order.countDocuments();
+    const pendingOrders = await Order.countDocuments({ status: { $in: ['Pending', 'Processing'] } });
+    const acceptedOrders = await Order.countDocuments({ status: 'Accepted' });
+    const shippedOrders = await Order.countDocuments({ status: 'Shipped' });
+    const deliveredOrders = await Order.countDocuments({ status: 'Delivered' });
+    const cancelledOrders = await Order.countDocuments({ status: 'Cancelled' });
 
-    // 3. Active Rentals count (orders in processing/shipped containing rentals)
-    const activeRentals = await Order.countDocuments({
-      status: { $in: ['Processing', 'Shipped'] },
-      'items.mode': 'rent'
-    });
-
-    // 4. Registered Users
     const registeredUsers = await User.countDocuments({ role: 'user' });
-
-    // 5. Total active products
     const totalProducts = await Product.countDocuments({ isActive: true });
-
-    // 6. Low stock items (active and stock <= 5)
-    const lowStockItems = await Product.countDocuments({
-      isActive: true,
-      stock: { $lte: 5 }
-    });
+    const totalCategories = await Category.countDocuments({ isActive: true });
+    const lowStockItems = await Product.countDocuments({ isActive: true, stock: { $lte: 5 } });
 
     res.status(200).json({
       success: true,
       data: {
         totalRevenue,
+        monthlyRevenue,
+        todaysOrders,
         totalOrders,
-        activeRentals,
+        pendingOrders,
+        acceptedOrders,
+        shippedOrders,
+        deliveredOrders,
+        cancelledOrders,
         registeredUsers,
         totalProducts,
+        totalCategories,
         lowStockItems
       }
     });

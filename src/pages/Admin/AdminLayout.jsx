@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { successToast } from '../../utils/toast';
+import logo from '../../assets/images/logo.webp';
 
 export default function AdminLayout() {
   const navigate = useNavigate();
@@ -67,11 +68,15 @@ export default function AdminLayout() {
         <div className="space-y-8">
           {/* Logo / Brand */}
           <div className="flex items-center gap-3 px-2">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-gaming-cyan to-blue-500 flex items-center justify-center shadow-[0_0_15px_rgba(0,229,255,0.3)]">
-              <span className="font-gaming text-lg font-black text-gaming-black">G</span>
+            <div className="h-10 w-10 rounded-xl bg-cyan-400/10 border border-cyan-400/30 flex items-center justify-center shadow-[0_0_12px_rgba(0,229,255,0.2)]">
+              <img
+                src={logo}
+                alt="GameHub Logo"
+                className="h-7 w-auto object-contain filter drop-shadow-[0_0_8px_rgba(0,229,255,0.4)]"
+              />
             </div>
-            <span className="font-gaming text-lg font-black text-white tracking-widest uppercase">
-              Game<span className="text-gaming-cyan">Hub</span>
+            <span className="font-gaming text-base font-black text-white tracking-widest uppercase">
+              Super<span className="text-gaming-cyan">Admin</span>
             </span>
           </div>
 
