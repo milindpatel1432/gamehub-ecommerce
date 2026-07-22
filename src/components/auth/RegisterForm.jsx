@@ -15,7 +15,7 @@ import {
   USERNAME_VALIDATION
 } from '../../utils/validation';
 
-export default function RegisterForm() {
+export default function RegisterForm({ onSuccess, onSwitchTab }) {
   const navigate = useNavigate();
   const { register: authRegister } = useAuth();
   const [serverError, setServerError] = useState('');
@@ -82,7 +82,11 @@ export default function RegisterForm() {
 
     if (res.success) {
       successToast('Registration successful! Please login.');
-      navigate('/login');
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        navigate('/login');
+      }
     } else {
       const errMsg = res.error || 'Registration failed';
       setServerError(errMsg);
@@ -292,12 +296,19 @@ export default function RegisterForm() {
 
       <div className="text-center text-xs text-slate-500 pt-2">
         Already have an account?{' '}
-        <Link
-          to="/login"
-          className="font-bold text-gaming-cyan hover:underline hover:text-gaming-accent transition-colors"
+        <button
+          type="button"
+          onClick={() => {
+            if (onSwitchTab) {
+              onSwitchTab('login');
+            } else {
+              navigate('/login');
+            }
+          }}
+          className="font-bold text-gaming-cyan hover:underline hover:text-gaming-accent transition-colors cursor-pointer"
         >
           Sign In
-        </Link>
+        </button>
       </div>
     </form>
   );

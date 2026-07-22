@@ -10,7 +10,7 @@ export const validateResult = (req, res, next) => {
     }));
     return res.status(400).json({
       success: false,
-      message: 'Validation Failed',
+      message: formattedErrors[0]?.message || 'Validation Failed',
       errors: formattedErrors,
     });
   }
@@ -41,36 +41,24 @@ export const registerValidator = [
     .withMessage('Invalid email format')
     .normalizeEmail(),
   body('phone')
-    .trim()
-    .notEmpty()
-    .withMessage('Phone number is required')
-    .matches(/^[6-9]\d{9}$/)
-    .withMessage('Phone number must be a valid 10-digit Indian mobile number'),
+    .optional({ checkFalsy: true })
+    .trim(),
   body('password')
     .notEmpty()
     .withMessage('Password is required')
-    .isLength({ min: 8 })
-    .withMessage('Password must be at least 8 characters long')
-    .matches(/[A-Z]/)
-    .withMessage('Password must contain at least one uppercase letter')
-    .matches(/[a-z]/)
-    .withMessage('Password must contain at least one lowercase letter')
-    .matches(/[0-9]/)
-    .withMessage('Password must contain at least one digit')
-    .matches(/[^A-Za-z0-9]/)
-    .withMessage('Password must contain at least one special character'),
+    .isLength({ min: 6 })
+    .withMessage('Password must be at least 6 characters long'),
   validateResult,
 ];
 
-// Login fields validation rules chain
+// Login fields validation rules chain (Supports both Email or Username)
 export const loginValidator = [
   body('email')
-    .trim()
-    .notEmpty()
-    .withMessage('Email is required')
-    .isEmail()
-    .withMessage('Invalid email format')
-    .normalizeEmail(),
+    .optional()
+    .trim(),
+  body('username')
+    .optional()
+    .trim(),
   body('password')
     .notEmpty()
     .withMessage('Password is required'),
