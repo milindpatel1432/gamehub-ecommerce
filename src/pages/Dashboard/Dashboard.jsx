@@ -94,7 +94,7 @@ export default function Dashboard() {
         <div className="flex flex-col lg:flex-row gap-8 items-start relative">
           
           {/* LEFT SIDEBAR (Desktop) */}
-          <aside className="hidden lg:block w-64 bg-gaming-card/30 border border-gaming-border rounded-3xl p-5 space-y-6 flex-shrink-0">
+          <aside className="hidden lg:block w-64 bg-gaming-card/30 border border-gaming-border rounded-3xl p-5 space-y-6 flex-shrink-0 sticky top-24 z-20">
             {/* User details header */}
             <div className="flex items-center gap-3.5 pb-4 border-b border-gaming-border/60">
               <div className="w-10 h-10 rounded-full border border-gaming-cyan bg-gaming-cyan/10 flex items-center justify-center font-gaming text-lg font-extrabold text-gaming-cyan">
