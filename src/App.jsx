@@ -1,4 +1,4 @@
-import { BrowserRouter as Router } from 'react-router-dom';
+import { BrowserRouter as Router, useLocation } from 'react-router-dom';
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
 import AppRoutes from './routes/AppRoutes';
@@ -7,30 +7,39 @@ import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext';
 import { Toaster } from 'react-hot-toast';
 
+function AppContent() {
+  const location = useLocation();
+  const isAdminRoute = location.pathname.startsWith('/admin');
+
+  return (
+    <div className="flex flex-col min-h-screen bg-gaming-dark text-slate-200 antialiased font-sans">
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 3000,
+        }}
+      />
+      {/* Render Navbar only on non-admin routes */}
+      {!isAdminRoute && <Navbar />}
+
+      {/* Main Content Area */}
+      <main className="flex-grow">
+        <AppRoutes />
+      </main>
+
+      {/* Render Footer only on non-admin routes */}
+      {!isAdminRoute && <Footer />}
+    </div>
+  );
+}
+
 function App() {
   return (
     <AuthProvider>
       <CartProvider>
         <WishlistProvider>
           <Router>
-            <div className="flex flex-col min-h-screen bg-gaming-dark text-slate-200 antialiased font-sans">
-              <Toaster
-                position="top-right"
-                toastOptions={{
-                  duration: 3000,
-                }}
-              />
-              {/* Navigation Bar */}
-              <Navbar />
-
-              {/* Main Content Area */}
-              <main className="flex-grow">
-                <AppRoutes />
-              </main>
-
-              {/* Footer */}
-              <Footer />
-            </div>
+            <AppContent />
           </Router>
         </WishlistProvider>
       </CartProvider>
