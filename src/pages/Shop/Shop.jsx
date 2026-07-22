@@ -74,14 +74,9 @@ export default function Shop() {
       }
     }
 
-    // Custom sidebar list items mapping
+    // Custom category filter mapping
     if (filters.categories && filters.categories.length > 0) {
-      const catName = filters.categories[0];
-      if (catName === 'PC Gaming') queryParams.platform = 'PC';
-      else if (catName === 'Xbox Series X') queryParams.platform = 'XBOX';
-      else if (catName === 'PlayStation 5') queryParams.platform = 'PS5';
-      else if (catName === 'Game CDs') queryParams.category = 'Games';
-      else if (catName === 'Accessories') queryParams.category = 'Hardware';
+      queryParams.category = filters.categories[0];
     }
 
     try {

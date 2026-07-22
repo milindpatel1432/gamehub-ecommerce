@@ -37,6 +37,20 @@ export default function Navbar() {
     navigate('/login');
   };
 
+  const handleWishlistClick = (e) => {
+    if (!isAuthenticated) {
+      e.preventDefault();
+      openAuthModal('login');
+    }
+  };
+
+  const handleCartClick = (e) => {
+    if (!isAuthenticated) {
+      e.preventDefault();
+      openAuthModal('login');
+    }
+  };
+
   const handleSearchSubmit = (e) => {
     e?.preventDefault();
     if (searchQuery.trim()) {
@@ -74,7 +88,7 @@ export default function Navbar() {
     { name: 'Rent', href: '/shop' },
     { name: 'Buy', href: '/shop' },
     { name: 'Deals', href: '/shop' },
-    { name: 'About', href: '#' },
+    { name: 'About', href: '/about' },
   ];
 
   return (
@@ -165,6 +179,7 @@ export default function Navbar() {
             {/* Wishlist Button */}
             <Link
               to="/wishlist"
+              onClick={handleWishlistClick}
               className="relative h-9 w-9 rounded-full border border-gaming-border hover:border-gaming-cyan/40 bg-gaming-black/40 hover:bg-gaming-card flex items-center justify-center text-slate-300 hover:text-gaming-cyan transition-all"
               title="Wishlist"
             >
@@ -179,6 +194,7 @@ export default function Navbar() {
             {/* Cart Button */}
             <Link
               to="/cart"
+              onClick={handleCartClick}
               className="relative h-9 w-9 rounded-full border border-gaming-border hover:border-gaming-cyan/40 bg-gaming-black/40 hover:bg-gaming-card flex items-center justify-center text-slate-300 hover:text-gaming-cyan transition-all"
               title="Cart"
             >
@@ -237,7 +253,7 @@ export default function Navbar() {
               <Search className="h-5 w-5" />
             </button>
 
-            <Link to="/cart" className="text-slate-300 relative p-2">
+            <Link to="/cart" onClick={handleCartClick} className="text-slate-300 relative p-2">
               <ShoppingBag className="h-5 w-5" />
               {getCartItemCount() > 0 && (
                 <span className="absolute top-0 right-0 bg-gaming-cyan text-gaming-black text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
@@ -311,7 +327,10 @@ export default function Navbar() {
               <div className="border-t border-gaming-border mt-3 pt-3 flex flex-col gap-2.5">
                 <Link
                   to="/wishlist"
-                  onClick={() => setIsOpen(false)}
+                  onClick={(e) => {
+                    setIsOpen(false);
+                    handleWishlistClick(e);
+                  }}
                   className="flex items-center justify-between px-4 py-2 rounded-xl bg-gaming-card/40 text-slate-300 hover:text-gaming-cyan text-sm"
                 >
                   <span className="flex items-center gap-2">

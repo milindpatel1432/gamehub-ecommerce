@@ -4,16 +4,22 @@ import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { useWishlist } from '../../context/WishlistContext';
 import { useCart } from '../../context/CartContext';
+import { useAuth } from '../../context/AuthContext';
 
 export default function ProductCard({ product }) {
   const navigate = useNavigate();
   const { isWishlisted, addToWishlist, removeFromWishlist } = useWishlist();
   const { addToCart } = useCart();
+  const { isAuthenticated, openAuthModal } = useAuth();
 
   const isFav = isWishlisted(product.id);
 
   const handleWishlistToggle = (e) => {
     e.stopPropagation();
+    if (!isAuthenticated) {
+      openAuthModal('login');
+      return;
+    }
     if (isFav) {
       removeFromWishlist(product.id);
     } else {
@@ -122,6 +128,10 @@ export default function ProductCard({ product }) {
           <div className="flex flex-col gap-2">
             <button
               onClick={() => {
+                if (!isAuthenticated) {
+                  openAuthModal('login');
+                  return;
+                }
                 addToCart({
                   id: product.id,
                   title: product.title,

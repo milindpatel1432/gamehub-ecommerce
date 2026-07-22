@@ -4,11 +4,13 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useWishlist } from '../../context/WishlistContext';
 import { useCart } from '../../context/CartContext';
+import { useAuth } from '../../context/AuthContext';
 
 export default function ProductInfoPanel({ product }) {
   const navigate = useNavigate();
   const { isWishlisted, addToWishlist, removeFromWishlist } = useWishlist();
   const { addToCart } = useCart();
+  const { isAuthenticated, openAuthModal } = useAuth();
   
   const productId = product?.id;
   const isWished = isWishlisted(productId);
@@ -17,6 +19,10 @@ export default function ProductInfoPanel({ product }) {
   const [shareSuccess, setShareSuccess] = useState(false);
 
   const handleWishlistToggle = () => {
+    if (!isAuthenticated) {
+      openAuthModal('login');
+      return;
+    }
     if (isWished) {
       removeFromWishlist(productId);
     } else {
@@ -157,6 +163,10 @@ export default function ProductInfoPanel({ product }) {
           {/* Primary CTA */}
           <button
             onClick={() => {
+              if (!isAuthenticated) {
+                openAuthModal('login');
+                return;
+              }
               addToCart({
                 id: product.id,
                 title: product.title,
@@ -178,7 +188,13 @@ export default function ProductInfoPanel({ product }) {
           {/* Secondary CTAs */}
           <div className="flex items-center gap-3">
             <button
-              onClick={() => navigate('/checkout')}
+              onClick={() => {
+                if (!isAuthenticated) {
+                  openAuthModal('login');
+                  return;
+                }
+                navigate('/checkout');
+              }}
               className="flex-1 h-12 rounded-full border border-gaming-border hover:border-gaming-cyan bg-gaming-black/30 hover:bg-gaming-black/60 text-xs font-bold uppercase tracking-wider text-white hover:text-gaming-cyan transition-all cursor-pointer"
             >
               {purchaseMode === 'buy' ? 'Buy Now' : 'Rent Now'}
