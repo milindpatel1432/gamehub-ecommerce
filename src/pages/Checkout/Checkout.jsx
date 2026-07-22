@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { CheckCircle2, ChevronRight, ShoppingCart, HelpCircle } from 'lucide-react';
+import { CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import CheckoutStepper from '../../components/checkout/CheckoutStepper';
 import AddressSection from '../../components/checkout/AddressSection';
@@ -14,12 +14,12 @@ import { paymentService } from '../../services/paymentService';
 
 export default function Checkout() {
   const navigate = useNavigate();
-  const { clearCart } = useCart();
+  const { cartItems, clearCart } = useCart();
   const [step, setStep] = useState(1);
   const [isAgreed, setIsAgreed] = useState(false);
   const [termsError, setTermsError] = useState(false);
 
-  // checkout states
+  // Checkout states
   const [address, setAddress] = useState({
     name: 'Marcus Thorne',
     street: '123 Neon Street, Sky-Tower 4',
@@ -40,12 +40,17 @@ export default function Checkout() {
 
   const handleNextStep = async () => {
     if (isSubmitting) return;
+
     if (step === 4) {
       if (!isAgreed) {
         setTermsError(true);
         return;
       }
+      
       setIsSubmitting(true);
+      console.log('[Checkout] Step 4 Place Order triggered.');
+      console.log(`[Checkout] Current cart items count: ${cartItems.length}`, cartItems);
+
       try {
         const payload = {
           shippingAddress: {
@@ -59,22 +64,56 @@ export default function Checkout() {
           deliveryMethod: {
             name: delivery.name,
             price: delivery.price
-          }
+          },
+          items: cartItems.map((item) => ({
+            product: item.productId || item.id,
+            quantity: item.quantity,
+            price: item.price,
+            mode: item.mode,
+            duration: item.duration,
+            deposit: item.deposit
+          }))
         };
+
+        console.log('[Checkout] Submitting order payload to backend:', payload);
         const response = await orderService.createOrder(payload);
+        console.log('[Checkout] Backend createOrder response:', response);
+
         if (response.success && response.data) {
-          // Load Razorpay script dynamically
+          const createdOrder = response.data;
+          console.log(`[Checkout] Order #${createdOrder.id} created on backend successfully.`);
+
+          // Handle COD (Cash on Delivery)
+          if (payment.type === 'cod') {
+            successToast('Order placed successfully!');
+            await clearCart(true);
+            navigate('/order-success', {
+              state: {
+                orderId: createdOrder.id,
+                orderItems: createdOrder.items,
+                subtotal: createdOrder.subtotal,
+                tax: createdOrder.tax,
+                total: createdOrder.total,
+                deliveryMethod: createdOrder.deliveryMethod
+              },
+            });
+            return;
+          }
+
+          // Handle Online Payment (Razorpay)
+          console.log('[Checkout] Initializing online payment gateway...');
           const scriptLoaded = await paymentService.loadRazorpayScript();
           if (!scriptLoaded) {
             errorToast('Razorpay payment gateway failed to load. Order created with pending payment.');
+            await clearCart(true);
             navigate('/orders');
             return;
           }
 
-          // Create payment order on Razorpay
-          const paymentOrder = await paymentService.createPaymentOrder(response.data.id);
+          const paymentOrder = await paymentService.createPaymentOrder(createdOrder.id);
           if (!paymentOrder.success || !paymentOrder.data) {
             errorToast('Failed to initialize payment order. You can try paying later from My Orders.');
+            await clearCart(true);
             navigate('/orders');
             return;
           }
@@ -91,32 +130,35 @@ export default function Checkout() {
             handler: async (paymentResponse) => {
               try {
                 setIsSubmitting(true);
+                console.log('[Checkout] Payment captured by Razorpay. Verifying signature...');
                 const verifyPayload = {
-                  orderId: response.data.id,
+                  orderId: createdOrder.id,
                   razorpayOrderId: paymentResponse.razorpay_order_id,
                   razorpayPaymentId: paymentResponse.razorpay_payment_id,
                   razorpaySignature: paymentResponse.razorpay_signature
                 };
                 const verification = await paymentService.verifyPayment(verifyPayload);
                 if (verification.success) {
+                  console.log('[Checkout] Payment verification success! Clearing cart now...');
                   successToast('Payment processed successfully!');
+                  await clearCart(true);
                   navigate('/order-success', {
                     state: {
-                      orderId: response.data.id,
-                      orderItems: response.data.items,
-                      subtotal: response.data.subtotal,
-                      tax: response.data.tax,
-                      total: response.data.total,
-                      deliveryMethod: response.data.deliveryMethod
+                      orderId: createdOrder.id,
+                      orderItems: createdOrder.items,
+                      subtotal: createdOrder.subtotal,
+                      tax: createdOrder.tax,
+                      total: createdOrder.total,
+                      deliveryMethod: createdOrder.deliveryMethod
                     },
                   });
-                  clearCart(true);
                 } else {
+                  console.error('[Checkout] Payment verification failed!');
                   errorToast('Payment signature verification failed.');
                   navigate('/orders');
                 }
               } catch (err) {
-                console.error(err);
+                console.error('[Checkout] Verification exception:', err);
                 errorToast(err.message || 'Payment verification failed.');
                 navigate('/orders');
               } finally {
@@ -125,6 +167,7 @@ export default function Checkout() {
             },
             modal: {
               ondismiss: () => {
+                console.log('[Checkout] Razorpay payment modal dismissed by user.');
                 infoToast('Payment checkout closed. You can complete this order payment in My Orders.');
                 navigate('/orders');
               }
@@ -141,11 +184,12 @@ export default function Checkout() {
           const rzp = new window.Razorpay(options);
           rzp.open();
         } else {
+          console.error('[Checkout] createOrder returned unsuccessful:', response);
           errorToast(response.message || 'Failed to place order.');
         }
       } catch (err) {
-        console.error(err);
-        errorToast(err.message || 'An error occurred while creating your order.');
+        console.error('[Checkout] Exception during handleNextStep:', err);
+        errorToast(err.response?.data?.message || err.message || 'An error occurred while creating your order.');
       } finally {
         setIsSubmitting(false);
       }
@@ -237,7 +281,7 @@ export default function Checkout() {
                               </h4>
                               <p className="text-slate-300 font-bold">{delivery.name}</p>
                               <p className="text-xs text-slate-500">
-                                {delivery.price === 0 ? 'Free Shipping' : `$${delivery.price.toFixed(2)} Fee`}
+                                {delivery.price === 0 ? 'Free Shipping' : `₹${delivery.price.toFixed(2)} Fee`}
                               </p>
                             </div>
 
@@ -261,7 +305,7 @@ export default function Checkout() {
                                 setIsAgreed(e.target.checked);
                                 setTermsError(false);
                               }}
-                              className="h-5 w-5 mt-0.5 rounded border-gaming-border bg-gaming-black text-gaming-cyan focus:ring-0"
+                              className="h-5 w-5 mt-0.5 rounded border-gaming-border bg-gaming-black text-gaming-cyan focus:ring-0 cursor-pointer"
                             />
                             <span className="text-xs sm:text-sm text-slate-400 leading-normal">
                               I agree to the <Link to="#" className="text-gaming-cyan hover:underline">Terms of Service</Link>, <Link to="#" className="text-gaming-cyan hover:underline">Privacy Policy</Link>, and the rental return guidelines.
@@ -305,7 +349,7 @@ export default function Checkout() {
                 Order Confirmed!
               </h2>
               <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest mt-1">
-                Order number: <strong className="text-gaming-cyan">#GH-8392-491</strong>
+                Thank you for your order.
               </p>
             </div>
 

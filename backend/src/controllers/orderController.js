@@ -7,11 +7,42 @@ import Product from '../models/Product.js';
 // ==========================================
 export const createOrder = async (req, res, next) => {
   try {
-    const { shippingAddress, paymentMethod, deliveryMethod } = req.body;
+    const { shippingAddress, paymentMethod, deliveryMethod, items: payloadItems } = req.body;
+
+    console.log(`[Order API] createOrder requested by user: ${req.user?.id}`);
+    console.log(`[Order API] Payload items count: ${Array.isArray(payloadItems) ? payloadItems.length : 0}`);
 
     // 1. Fetch user's cart populated with product details
-    const cart = await Cart.findOne({ user: req.user.id }).populate('items.product');
-    if (!cart || cart.items.length === 0) {
+    let cart = await Cart.findOne({ user: req.user.id }).populate('items.product');
+    let cartItemsList = cart ? cart.items.filter((i) => i && i.product) : [];
+
+    console.log(`[Order API] DB Cart items count: ${cartItemsList.length}`);
+
+    // Fallback: If DB cart is empty, construct items from payloadItems passed from frontend
+    if (cartItemsList.length === 0 && Array.isArray(payloadItems) && payloadItems.length > 0) {
+      console.log(`[Order API] DB Cart is empty. Using ${payloadItems.length} items from frontend payload fallback.`);
+      const constructedList = [];
+      for (const pItem of payloadItems) {
+        const prodId = pItem.product || pItem.productId || pItem.id;
+        if (prodId) {
+          const prodDoc = await Product.findById(prodId);
+          if (prodDoc) {
+            constructedList.push({
+              product: prodDoc,
+              quantity: pItem.quantity || 1,
+              price: pItem.price || prodDoc.price,
+              mode: pItem.mode || 'buy',
+              duration: pItem.duration || '7 Days',
+              deposit: pItem.deposit || 0,
+            });
+          }
+        }
+      }
+      cartItemsList = constructedList;
+    }
+
+    if (!cartItemsList || cartItemsList.length === 0) {
+      console.error(`[Order API] Order failed: Shopping cart is empty for user ${req.user?.id}`);
       return res.status(400).json({
         success: false,
         message: 'Your shopping cart is empty',
@@ -19,7 +50,7 @@ export const createOrder = async (req, res, next) => {
     }
 
     // 2. Validate product stock levels
-    for (const item of cart.items) {
+    for (const item of cartItemsList) {
       if (!item.product) {
         return res.status(404).json({
           success: false,
@@ -27,6 +58,7 @@ export const createOrder = async (req, res, next) => {
         });
       }
       if (item.product.stock < item.quantity) {
+        console.warn(`[Order API] Insufficient stock for product ${item.product.title}`);
         return res.status(400).json({
           success: false,
           message: `Insufficient stock for "${item.product.title}". Available stock: ${item.product.stock}`,
@@ -35,7 +67,7 @@ export const createOrder = async (req, res, next) => {
     }
 
     // 3. Subtract stock from each ordered product
-    for (const item of cart.items) {
+    for (const item of cartItemsList) {
       await Product.findByIdAndUpdate(item.product._id, {
         $inc: { stock: -item.quantity },
       });
@@ -43,8 +75,9 @@ export const createOrder = async (req, res, next) => {
 
     // 4. Calculate prices
     let subtotal = 0;
-    const orderItems = cart.items.map((item) => {
-      subtotal += item.price * item.quantity;
+    const orderItems = cartItemsList.map((item) => {
+      const itemSubtotal = item.price * item.quantity;
+      subtotal += itemSubtotal;
       return {
         product: item.product._id,
         quantity: item.quantity,
@@ -73,9 +106,13 @@ export const createOrder = async (req, res, next) => {
       status: 'Processing',
     });
 
-    // 6. Clear user's Cart
-    cart.items = [];
-    await cart.save();
+    // 6. Clear user's DB Cart ONLY after order document is created
+    if (cart) {
+      cart.items = [];
+      await cart.save();
+    }
+
+    console.log(`[Order API] Order #${order._id} created successfully! Total: ₹${total}`);
 
     res.status(201).json({
       success: true,
@@ -83,6 +120,7 @@ export const createOrder = async (req, res, next) => {
       data: order,
     });
   } catch (error) {
+    console.error('[Order API] Exception during createOrder:', error);
     next(error);
   }
 };
@@ -180,7 +218,7 @@ export const cancelOrder = async (req, res, next) => {
     }
 
     order.status = 'Cancelled';
-    order.paymentStatus = order.paymentMethod === 'cod' ? 'pending' : 'failed'; // failed or refunded if paid
+    order.paymentStatus = order.paymentMethod === 'cod' ? 'pending' : 'failed';
     await order.save();
 
     res.status(200).json({
