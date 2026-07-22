@@ -267,6 +267,56 @@ export const getRentals = async (req, res, next) => {
 };
 
 // ==========================================
+// Admin Update Order Status
+// ==========================================
+export const updateOrderStatus = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    const validStatuses = ['Pending', 'Accepted', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
+    if (!status || !validStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid status. Must be one of: ${validStatuses.join(', ')}`
+      });
+    }
+
+    const order = await Order.findById(id);
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: 'Order not found in database'
+      });
+    }
+
+    // Restore stock if cancelling a non-cancelled order
+    if (status === 'Cancelled' && order.status !== 'Cancelled') {
+      for (const item of order.items) {
+        await Product.findByIdAndUpdate(item.product, {
+          $inc: { stock: item.quantity }
+        });
+      }
+    }
+
+    order.status = status;
+    await order.save();
+
+    console.log(`[Admin] Order #${id} status updated to: ${status} by admin ${req.user?.email}`);
+
+    res.status(200).json({
+      success: true,
+      message: `Order status updated to ${status} successfully`,
+      data: order
+    });
+  } catch (error) {
+    console.error('[Admin] updateOrderStatus error:', error);
+    next(error);
+  }
+};
+
+
+// ==========================================
 // 4. User Management
 // ==========================================
 export const getUsers = async (req, res, next) => {

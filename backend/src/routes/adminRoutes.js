@@ -12,6 +12,7 @@ import {
   deleteConsole,
   getOrders,
   getRentals,
+  updateOrderStatus,
   getUsers,
   toggleBlockUser,
   deleteUser,
@@ -46,6 +47,7 @@ router.delete('/consoles/:id', deleteConsole);
 
 // Order & Rental management
 router.get('/orders', getOrders);
+router.put('/orders/:id/status', updateOrderStatus);
 router.get('/rentals', getRentals);
 
 // User Accounts management

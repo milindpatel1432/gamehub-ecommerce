@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { ShoppingBag, Search, Eye, Filter } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { adminService } from '../../services/adminService';
-import { orderService } from '../../services/orderService';
 import { successToast, errorToast } from '../../utils/toast';
 import LoadingSpinner from '../ui/LoadingSpinner';
 
@@ -47,8 +46,13 @@ export default function AdminOrders({ limit = null }) {
   }, []);
 
   const handleStatusChange = async (orderId, newStatus) => {
+    console.log(`[AdminOrders] Updating order ID: ${orderId} → ${newStatus}`);
+    if (!orderId) {
+      errorToast('Order ID is missing. Cannot update status.');
+      return;
+    }
     try {
-      const res = await orderService.updateOrderStatus(orderId, newStatus);
+      const res = await adminService.updateOrderStatus(orderId, newStatus);
       if (res.success) {
         successToast(`Order status updated to ${newStatus}!`);
         setOrders(orders.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o)));
@@ -56,8 +60,9 @@ export default function AdminOrders({ limit = null }) {
         errorToast(res.message || 'Failed to update order status.');
       }
     } catch (err) {
-      console.error(err);
-      errorToast('Error updating order status.');
+      console.error('[AdminOrders] Status update error:', err);
+      const msg = err.response?.data?.message || err.message || 'Error updating order status.';
+      errorToast(msg);
     }
   };
 
@@ -191,8 +196,9 @@ export default function AdminOrders({ limit = null }) {
                       onChange={(e) => handleStatusChange(order.id, e.target.value)}
                       className="h-8 rounded-lg bg-gaming-black border border-gaming-border text-[10px] font-bold text-white px-2 focus:outline-none focus:border-gaming-cyan cursor-pointer disabled:opacity-40"
                     >
-                      <option value="Processing">Processing</option>
+                      <option value="Pending">Pending</option>
                       <option value="Accepted">Accepted</option>
+                      <option value="Processing">Processing</option>
                       <option value="Shipped">Shipped</option>
                       <option value="Delivered">Delivered</option>
                       <option value="Cancelled">Cancelled</option>

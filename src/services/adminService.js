@@ -76,4 +76,10 @@ export const adminService = {
     const response = await axiosInstance.get(API_ENDPOINTS.ADMIN.ANALYTICS);
     return response.data;
   },
+
+  updateOrderStatus: async (orderId, status) => {
+    console.log(`[adminService] Updating order #${orderId} status to: ${status}`);
+    const response = await axiosInstance.put(`${API_ENDPOINTS.ADMIN.ORDERS}/${orderId}/status`, { status });
+    return response.data;
+  },
 };
