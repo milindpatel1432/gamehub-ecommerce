@@ -61,25 +61,25 @@ export default function LoginForm({ onSuccess, onSwitchTab }) {
         </div>
       )}
 
-      {/* Email input field */}
+      {/* Email / Username input field */}
       <div className="space-y-1.5 text-left">
         <label htmlFor="email" className="block text-xs font-bold text-slate-400 uppercase tracking-wider">
-          Email Address
+          Email or Username
         </label>
         <div className="relative rounded-xl shadow-sm">
           <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
             <Mail className="h-4.5 w-4.5 text-slate-500" />
           </div>
           <input
-            type="email"
+            type="text"
             id="email"
-            placeholder="gaming@gamehub.com"
+            placeholder="gaming@gamehub.com or milindadmin"
             aria-invalid={!!errors.email}
             aria-describedby={errors.email ? 'email-error' : undefined}
             className={`block h-12 w-full pl-11 pr-4 rounded-xl bg-gaming-black/60 border text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-0 transition-all ${
               errors.email ? 'border-red-500 focus:border-red-500' : 'border-gaming-border focus:border-gaming-cyan/60'
             }`}
-            {...register('email', EMAIL_VALIDATION)}
+            {...register('email', { required: 'Email address or username is required' })}
           />
         </div>
         {errors.email && (

@@ -67,14 +67,27 @@ export const register = async (req, res, next) => {
 // ==========================
 export const login = async (req, res, next) => {
   try {
-    const { email, password } = req.body;
+    const { email, username, loginId, password } = req.body;
+    const identifier = (email || username || loginId || '').trim();
 
-    const user = await User.findOne({ email });
+    if (!identifier || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide email/username and password',
+      });
+    }
+
+    const user = await User.findOne({
+      $or: [
+        { email: identifier.toLowerCase() },
+        { username: identifier }
+      ]
+    });
 
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid email or password',
+        message: 'Invalid credentials',
       });
     }
 
