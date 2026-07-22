@@ -9,7 +9,7 @@ import { Toaster } from 'react-hot-toast';
 
 function AppContent() {
   const location = useLocation();
-  const isAdminRoute = location.pathname.startsWith('/admin');
+  const hideLayout = location.pathname.startsWith('/admin') || location.pathname.startsWith('/dashboard') || location.pathname.startsWith('/profile');
 
   return (
     <div className="flex flex-col min-h-screen bg-gaming-dark text-slate-200 antialiased font-sans">
@@ -19,16 +19,16 @@ function AppContent() {
           duration: 3000,
         }}
       />
-      {/* Render Navbar only on non-admin routes */}
-      {!isAdminRoute && <Navbar />}
+      {/* Render Navbar only when not on admin or dashboard routes */}
+      {!hideLayout && <Navbar />}
 
       {/* Main Content Area */}
       <main className="flex-grow">
         <AppRoutes />
       </main>
 
-      {/* Render Footer only on non-admin routes */}
-      {!isAdminRoute && <Footer />}
+      {/* Render Footer only when not on admin or dashboard routes */}
+      {!hideLayout && <Footer />}
     </div>
   );
 }
