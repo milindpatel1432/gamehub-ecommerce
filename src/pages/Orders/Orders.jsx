@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, ShoppingBag, Eye, ChevronDown, CheckCircle2, Clock, Truck, XCircle, ArrowRight } from 'lucide-react';
+import { Search, ShoppingBag, ChevronDown, CheckCircle2, Clock, Truck, XCircle } from 'lucide-react';
 import { orderService } from '../../services/orderService';
 import { useCart } from '../../context/CartContext';
 import { successToast } from '../../utils/toast';
@@ -23,14 +23,16 @@ export default function Orders() {
     setIsLoading(true);
     setError(null);
     try {
+      console.log('[Orders Page] Requesting my-orders from API...');
       const res = await orderService.getOrders();
       if (res.success && Array.isArray(res.data)) {
+        console.log(`[Orders Page] Successfully fetched ${res.data.length} customer order(s).`);
         setOrders(res.data);
       } else {
         setError('Failed to retrieve your order history.');
       }
     } catch (err) {
-      console.error('Error fetching orders:', err);
+      console.error('[Orders Page] Error fetching orders:', err);
       setError(err.message || 'Error connecting to backend server.');
     } finally {
       setIsLoading(false);
@@ -43,7 +45,7 @@ export default function Orders() {
 
   const formatDate = (dateString) => {
     if (!dateString) return '';
-    return new Date(dateString).toLocaleDateString('en-US', {
+    return new Date(dateString).toLocaleDateString('en-IN', {
       month: 'short',
       day: '2-digit',
       year: 'numeric',
@@ -58,7 +60,7 @@ export default function Orders() {
       const matchesSearch =
         orderNum.toLowerCase().includes(searchQuery.toLowerCase()) ||
         fullId.includes(searchQuery.toLowerCase()) ||
-        order.items.some((item) => item.title.toLowerCase().includes(searchQuery.toLowerCase()));
+        order.items.some((item) => (item.title || '').toLowerCase().includes(searchQuery.toLowerCase()));
 
       const matchesStatus =
         statusFilter === 'ALL' || order.status.toUpperCase() === statusFilter.toUpperCase();
@@ -100,6 +102,14 @@ export default function Orders() {
         </span>
       );
     }
+    if (s === 'accepted') {
+      return (
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+          <CheckCircle2 className="h-3.5 w-3.5" />
+          <span>Accepted</span>
+        </span>
+      );
+    }
     if (s === 'cancelled') {
       return (
         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20">
@@ -108,7 +118,15 @@ export default function Orders() {
         </span>
       );
     }
-    // Processing / Pending
+    if (s === 'pending') {
+      return (
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-purple-500/10 text-purple-400 border border-purple-500/20">
+          <Clock className="h-3.5 w-3.5" />
+          <span>Pending</span>
+        </span>
+      );
+    }
+    // Processing
     return (
       <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
         <Clock className="h-3.5 w-3.5" />
@@ -121,9 +139,7 @@ export default function Orders() {
     <div className="w-full bg-[#060914] min-h-screen text-slate-200 text-left font-sans flex flex-col py-10 px-4 sm:px-6 lg:px-12">
       <div className="mx-auto max-w-6xl w-full space-y-8 flex-grow">
         
-        {/* ============================================================ */}
-        {/* HEADER SECTION (Matching Reference UI)                       */}
-        {/* ============================================================ */}
+        {/* Header section */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-2">
           <div>
             <h1 className="font-sans text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
@@ -147,11 +163,8 @@ export default function Orders() {
           </div>
         </div>
 
-        {/* ============================================================ */}
-        {/* ORDERS LIST CONTAINER                                         */}
-        {/* ============================================================ */}
+        {/* Orders list container */}
         {isLoading ? (
-          /* Loading Skeletons */
           <div className="space-y-4 py-4">
             {[1, 2, 3].map((i) => (
               <div key={i} className="animate-pulse h-28 rounded-2xl bg-slate-900/60 border border-slate-800" />
@@ -221,7 +234,6 @@ export default function Orders() {
                         </div>
                       )}
 
-                      {/* Extra items overlay badge */}
                       {extraItemsCount > 0 && (
                         <div className="relative w-14 h-14 rounded-xl border border-slate-800 overflow-hidden bg-slate-900 flex-shrink-0 flex items-center justify-center">
                           {order.items[1] && (
@@ -247,7 +259,7 @@ export default function Orders() {
                           Total Amount
                         </span>
                         <span className="font-sans text-xl sm:text-2xl font-extrabold text-white">
-                          ₹{order.total.toFixed(2)}
+                          ₹{order.total.toLocaleString('en-IN')}
                         </span>
                       </div>
 
@@ -260,7 +272,7 @@ export default function Orders() {
                           View Details
                         </Link>
 
-                        {order.status === 'Processing' || order.status === 'Shipped' || order.status === 'Pending' ? (
+                        {order.status === 'Processing' || order.status === 'Shipped' || order.status === 'Pending' || order.status === 'Accepted' ? (
                           <button
                             onClick={() => navigate(`/orders/${order.id}`)}
                             className="h-10 px-5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs transition-all shadow-[0_0_15px_rgba(37,99,235,0.3)] cursor-pointer flex items-center justify-center"
@@ -300,9 +312,6 @@ export default function Orders() {
 
       </div>
 
-      {/* ============================================================ */}
-      {/* FOOTER SECTION (Matching Reference UI)                      */}
-      {/* ============================================================ */}
       <footer className="pt-16 pb-6 border-t border-slate-800/80 text-center space-y-4 mt-12">
         <div className="flex justify-center items-center gap-6 text-xs text-slate-400">
           <a href="#" className="hover:text-white transition-colors">Terms</a>

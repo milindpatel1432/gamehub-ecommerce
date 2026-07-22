@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ShoppingBag, Eye, CheckCircle2, Clock, Truck, XCircle } from 'lucide-react';
+import { ShoppingBag, CheckCircle2, Clock, Truck, XCircle } from 'lucide-react';
 import { orderService } from '../../services/orderService';
 import { useCart } from '../../context/CartContext';
 import { successToast } from '../../utils/toast';
@@ -16,8 +16,10 @@ export default function DashboardOrders({ limit = null }) {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
+        console.log('[DashboardOrders] Requesting order list...');
         const res = await orderService.getOrders();
         if (res.success && Array.isArray(res.data)) {
+          console.log(`[DashboardOrders] Retrieved ${res.data.length} customer order(s).`);
           setOrders(res.data);
         }
       } catch (err) {
@@ -31,7 +33,7 @@ export default function DashboardOrders({ limit = null }) {
 
   const formatDate = (dateString) => {
     if (!dateString) return '';
-    return new Date(dateString).toLocaleDateString('en-US', {
+    return new Date(dateString).toLocaleDateString('en-IN', {
       month: 'short',
       day: '2-digit',
       year: 'numeric',
@@ -71,11 +73,27 @@ export default function DashboardOrders({ limit = null }) {
         </span>
       );
     }
+    if (s === 'accepted') {
+      return (
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+          <CheckCircle2 className="h-3.5 w-3.5" />
+          <span>Accepted</span>
+        </span>
+      );
+    }
     if (s === 'cancelled') {
       return (
         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20">
           <XCircle className="h-3.5 w-3.5" />
           <span>Cancelled</span>
+        </span>
+      );
+    }
+    if (s === 'pending') {
+      return (
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-purple-500/10 text-purple-400 border border-purple-500/20">
+          <Clock className="h-3.5 w-3.5" />
+          <span>Pending</span>
         </span>
       );
     }
@@ -164,7 +182,7 @@ export default function DashboardOrders({ limit = null }) {
                   <div className="text-left md:text-right">
                     <span className="text-[10px] text-slate-400 font-bold uppercase block">Total Amount</span>
                     <span className="font-sans text-xl font-extrabold text-white">
-                      ₹{order.total.toFixed(2)}
+                      ₹{order.total.toLocaleString('en-IN')}
                     </span>
                   </div>
 
@@ -175,7 +193,7 @@ export default function DashboardOrders({ limit = null }) {
                     >
                       View Details
                     </Link>
-                    {order.status === 'Processing' || order.status === 'Shipped' ? (
+                    {order.status === 'Processing' || order.status === 'Shipped' || order.status === 'Pending' || order.status === 'Accepted' ? (
                       <button
                         onClick={() => navigate(`/orders/${order.id}`)}
                         className="h-9 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs transition-all cursor-pointer"

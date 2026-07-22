@@ -20,6 +20,7 @@ router.use(protect);
 
 router.post('/', createOrderValidator, createOrder);
 router.get('/', getMyOrders);
+router.get('/my-orders', getMyOrders);
 router.get('/admin/all', authorize('admin'), getAllOrders);
 router.get('/:id', getOrderById);
 router.put('/:id/cancel', cancelOrder);
