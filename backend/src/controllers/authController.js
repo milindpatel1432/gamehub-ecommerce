@@ -35,12 +35,14 @@ export const register = async (req, res, next) => {
       });
     }
 
+    // Single Super Admin System: Every newly registered user receives role = "user"
     const user = await User.create({
       fullName,
       username,
       email,
       phone,
       password,
+      role: 'user',
     });
 
     res.status(201).json({

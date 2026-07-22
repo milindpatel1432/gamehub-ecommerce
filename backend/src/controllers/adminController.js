@@ -276,6 +276,10 @@ export const toggleBlockUser = async (req, res, next) => {
     if (!user) {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
+    // Single Super Admin System: Protect Super Admin account
+    if (user.role === 'admin' || user.email === 'admin@gamehub.com' || user.username === 'milindadmin') {
+      return res.status(403).json({ success: false, message: 'Forbidden: Permanent Super Admin account cannot be blocked or suspended.' });
+    }
     // Prevent blocking oneself
     if (user._id.toString() === req.user.id) {
       return res.status(400).json({ success: false, message: 'Cannot block yourself' });
@@ -295,10 +299,15 @@ export const toggleBlockUser = async (req, res, next) => {
 
 export const deleteUser = async (req, res, next) => {
   try {
-    const user = await User.findByIdAndDelete(req.params.id);
-    if (!user) {
+    const userToDelete = await User.findById(req.params.id);
+    if (!userToDelete) {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
+    // Single Super Admin System: Protect Super Admin account
+    if (userToDelete.role === 'admin' || userToDelete.email === 'admin@gamehub.com' || userToDelete.username === 'milindadmin') {
+      return res.status(403).json({ success: false, message: 'Forbidden: Permanent Super Admin account cannot be deleted.' });
+    }
+    await User.findByIdAndDelete(req.params.id);
     res.status(200).json({
       success: true,
       message: 'User account deleted successfully'
