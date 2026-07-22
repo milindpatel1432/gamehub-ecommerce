@@ -16,6 +16,9 @@ function AppContent() {
     <div className="flex flex-col min-h-screen bg-gaming-dark text-slate-200 antialiased font-sans">
       <Toaster
         position="top-right"
+        containerStyle={{
+          zIndex: 999999,
+        }}
         toastOptions={{
           duration: 3000,
         }}

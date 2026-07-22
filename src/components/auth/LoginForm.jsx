@@ -1,7 +1,7 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { Mail, ArrowRight } from 'lucide-react';
+import { Mail, ArrowRight, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import PasswordInput from './PasswordInput';
 import SocialLogin from './SocialLogin';
@@ -11,6 +11,7 @@ import { EMAIL_VALIDATION, PASSWORD_VALIDATION } from '../../utils/validation';
 export default function LoginForm({ onSuccess, onSwitchTab }) {
   const navigate = useNavigate();
   const { login } = useAuth();
+  const [serverError, setServerError] = useState('');
 
   const {
     register,
@@ -31,6 +32,7 @@ export default function LoginForm({ onSuccess, onSwitchTab }) {
   }, [setFocus]);
 
   const onSubmit = async (data) => {
+    setServerError('');
     const res = await login(data.email, data.password);
     if (res.success) {
       successToast('Welcome back! Logged in successfully.');
@@ -43,12 +45,22 @@ export default function LoginForm({ onSuccess, onSwitchTab }) {
         navigate('/dashboard');
       }
     } else {
-      errorToast(res.error);
+      const errMsg = res.error || 'Invalid email or password';
+      setServerError(errMsg);
+      errorToast(errMsg);
     }
   };
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
+      {/* Server Error Alert Banner */}
+      {serverError && (
+        <div className="p-3.5 rounded-xl border border-red-500/40 bg-red-500/10 text-red-400 text-xs font-semibold flex items-center gap-2.5 animate-fadeIn text-left">
+          <AlertCircle className="h-4 w-4 flex-shrink-0 text-red-500" />
+          <span>{serverError}</span>
+        </div>
+      )}
+
       {/* Email input field */}
       <div className="space-y-1.5 text-left">
         <label htmlFor="email" className="block text-xs font-bold text-slate-400 uppercase tracking-wider">

@@ -1,7 +1,7 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { Mail, User, Phone, ArrowRight } from 'lucide-react';
+import { Mail, User, Phone, ArrowRight, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import PasswordInput from './PasswordInput';
 import SocialLogin from './SocialLogin';
@@ -18,6 +18,7 @@ import {
 export default function RegisterForm() {
   const navigate = useNavigate();
   const { register: authRegister } = useAuth();
+  const [serverError, setServerError] = useState('');
 
   const {
     register,
@@ -63,8 +64,11 @@ export default function RegisterForm() {
   }, [watchedPassword]);
 
   const onSubmit = async (data) => {
+    setServerError('');
     if (!data.agreeTerms) {
-      errorToast('You must agree to the Terms of Service.');
+      const msg = 'You must agree to the Terms of Service.';
+      setServerError(msg);
+      errorToast(msg);
       return;
     }
 
@@ -80,12 +84,22 @@ export default function RegisterForm() {
       successToast('Registration successful! Please login.');
       navigate('/login');
     } else {
-      errorToast(res.error);
+      const errMsg = res.error || 'Registration failed';
+      setServerError(errMsg);
+      errorToast(errMsg);
     }
   };
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
+      {/* Server Error Alert Banner */}
+      {serverError && (
+        <div className="p-3.5 rounded-xl border border-red-500/40 bg-red-500/10 text-red-400 text-xs font-semibold flex items-center gap-2.5 animate-fadeIn text-left">
+          <AlertCircle className="h-4 w-4 flex-shrink-0 text-red-500" />
+          <span>{serverError}</span>
+        </div>
+      )}
+
       {/* Grid for Name & Username */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* Full Name field */}
