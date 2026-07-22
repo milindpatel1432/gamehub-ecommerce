@@ -2,6 +2,7 @@ import { BrowserRouter as Router, useLocation } from 'react-router-dom';
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
 import AppRoutes from './routes/AppRoutes';
+import AuthModal from './components/auth/AuthModal';
 import { WishlistProvider } from './context/WishlistContext';
 import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext';
@@ -19,6 +20,9 @@ function AppContent() {
           duration: 3000,
         }}
       />
+      {/* Global Auth Popup Modal */}
+      <AuthModal />
+
       {/* Render Navbar only when not on admin or dashboard routes */}
       {!hideLayout && <Navbar />}
 

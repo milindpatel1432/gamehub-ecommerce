@@ -98,9 +98,9 @@ export default function FlashSale() {
             {/* Pricing / CTA */}
             <div className="flex flex-col sm:flex-row sm:items-center gap-6 pt-4">
               <div className="space-y-1">
-                <span className="text-xs text-slate-500 line-through font-semibold">${flashSale.originalPrice.toFixed(2)}</span>
+                <span className="text-xs text-slate-500 line-through font-semibold">₹{flashSale.originalPrice.toFixed(2)}</span>
                 <p className="text-3xl font-extrabold text-gaming-cyan font-gaming tracking-wide">
-                  ${flashSale.salePrice.toFixed(2)}
+                  ₹{flashSale.salePrice.toFixed(2)}
                 </p>
               </div>
               <button className="h-14 px-10 rounded-full bg-white hover:bg-gaming-cyan hover:text-gaming-black text-gaming-black font-bold text-sm tracking-wide shadow-[0_4px_20px_rgba(255,255,255,0.15)] hover:shadow-[0_0_25px_rgba(0,229,255,0.5)] transition-all duration-300 transform hover:-translate-y-0.5 flex items-center justify-center gap-2">

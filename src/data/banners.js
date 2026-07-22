@@ -10,6 +10,6 @@ export const flashSale = {
 
 export const elitePromo = {
   title: 'ELITE MEMBERSHIP',
-  subtitle: 'Save $50 on every rental',
-  priceDetail: 'Starting at $19.99/mo',
+  subtitle: 'Save ₹500 on every rental',
+  priceDetail: 'Starting at ₹1,999/mo',
 };

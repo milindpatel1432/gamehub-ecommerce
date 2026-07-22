@@ -55,7 +55,7 @@ export default function OrderSummarySidebar({
                 {item.platform ? `${item.platform} Edition` : 'Digital Edition'}
               </p>
               <div className="flex items-center justify-between text-[10px] text-slate-400 mt-1">
-                <span>${item.price.toFixed(2)}</span>
+                <span>₹{item.price.toFixed(2)}</span>
                 <span>Qty: {item.quantity}</span>
               </div>
             </div>
@@ -67,21 +67,21 @@ export default function OrderSummarySidebar({
       <div className="space-y-3.5 text-xs text-slate-400 border-t border-gaming-border/60 pt-4">
         <div className="flex items-center justify-between">
           <span>Subtotal</span>
-          <span className="font-bold text-white">${subtotal.toFixed(2)}</span>
+          <span className="font-bold text-white">₹{subtotal.toFixed(2)}</span>
         </div>
         
         <div className="flex items-center justify-between">
           <span>Shipping</span>
           <span className={`font-bold ${isShippingCalculated ? 'text-white' : 'text-slate-500 italic'}`}>
             {isShippingCalculated
-              ? shippingCost === 0 ? 'Free' : `$${shippingCost.toFixed(2)}`
+              ? shippingCost === 0 ? 'Free' : `₹${shippingCost.toFixed(2)}`
               : 'Calculated next step'}
           </span>
         </div>
 
         <div className="flex items-center justify-between pb-4 border-b border-gaming-border/60">
           <span>Estimated Tax</span>
-          <span className="font-bold text-white">${tax.toFixed(2)}</span>
+          <span className="font-bold text-white">₹{tax.toFixed(2)}</span>
         </div>
       </div>
 
@@ -92,7 +92,7 @@ export default function OrderSummarySidebar({
           <p className="text-[8px] text-slate-500 font-semibold uppercase tracking-wider">Inc. All Taxes</p>
         </div>
         <span className="text-3xl font-extrabold font-gaming text-white tracking-wide">
-          ${grandTotal.toFixed(2)}
+          ₹{grandTotal.toFixed(2)}
         </span>
       </div>
 

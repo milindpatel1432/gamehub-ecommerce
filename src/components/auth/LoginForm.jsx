@@ -8,7 +8,7 @@ import SocialLogin from './SocialLogin';
 import { successToast, errorToast } from '../../utils/toast';
 import { EMAIL_VALIDATION, PASSWORD_VALIDATION } from '../../utils/validation';
 
-export default function LoginForm() {
+export default function LoginForm({ onSuccess, onSwitchTab }) {
   const navigate = useNavigate();
   const { login } = useAuth();
 
@@ -31,11 +31,12 @@ export default function LoginForm() {
   }, [setFocus]);
 
   const onSubmit = async (data) => {
-    // Simulated short delay
-    await new Promise((resolve) => setTimeout(resolve, 600));
     const res = await login(data.email, data.password);
     if (res.success) {
       successToast('Welcome back! Logged in successfully.');
+      if (onSuccess) {
+        onSuccess();
+      }
       if (res.user?.role === 'admin') {
         navigate('/admin');
       } else {
@@ -63,8 +64,9 @@ export default function LoginForm() {
             placeholder="gaming@gamehub.com"
             aria-invalid={!!errors.email}
             aria-describedby={errors.email ? 'email-error' : undefined}
-            className={`block h-12 w-full pl-11 pr-4 rounded-xl bg-gaming-black/60 border text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-0 transition-all ${errors.email ? 'border-red-500 focus:border-red-500' : 'border-gaming-border focus:border-gaming-cyan/60'
-              }`}
+            className={`block h-12 w-full pl-11 pr-4 rounded-xl bg-gaming-black/60 border text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-0 transition-all ${
+              errors.email ? 'border-red-500 focus:border-red-500' : 'border-gaming-border focus:border-gaming-cyan/60'
+            }`}
             {...register('email', EMAIL_VALIDATION)}
           />
         </div>
@@ -117,12 +119,19 @@ export default function LoginForm() {
       {/* Registration helper footer */}
       <div className="text-center text-xs text-slate-500 pt-2">
         Don't have an account?{' '}
-        <Link
-          to="/register"
-          className="font-bold text-gaming-cyan hover:underline hover:text-gaming-accent transition-colors"
+        <button
+          type="button"
+          onClick={() => {
+            if (onSwitchTab) {
+              onSwitchTab('register');
+            } else {
+              navigate('/register');
+            }
+          }}
+          className="font-bold text-gaming-cyan hover:underline hover:text-gaming-accent transition-colors cursor-pointer"
         >
           Register Here
-        </Link>
+        </button>
       </div>
     </form>
   );

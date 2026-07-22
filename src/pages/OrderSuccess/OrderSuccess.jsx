@@ -138,7 +138,7 @@ export default function OrderSuccess() {
                     Qty: <strong className="text-white font-bold">{item.quantity}</strong>
                   </div>
                   <span className="font-gaming text-sm font-bold text-gaming-cyan">
-                    ${(item.price * item.quantity).toFixed(2)}
+                    ₹{(item.price * item.quantity).toFixed(2)}
                   </span>
                 </div>
               </div>
@@ -149,21 +149,21 @@ export default function OrderSuccess() {
           <div className="border-t border-gaming-border/60 pt-4 space-y-3.5 text-xs text-slate-400">
             <div className="flex items-center justify-between">
               <span>Subtotal</span>
-              <span className="font-bold text-white">${subtotal.toFixed(2)}</span>
+              <span className="font-bold text-white">₹{subtotal.toFixed(2)}</span>
             </div>
             <div className="flex items-center justify-between">
               <span>Delivery Method ({deliveryMethod.name})</span>
               <span className={`font-bold ${shippingCost === 0 ? 'text-green-500' : 'text-white'}`}>
-                {shippingCost === 0 ? 'FREE' : `$${shippingCost.toFixed(2)}`}
+                {shippingCost === 0 ? 'FREE' : `₹${shippingCost.toFixed(2)}`}
               </span>
             </div>
             <div className="flex items-center justify-between">
               <span>Estimated Tax (8%)</span>
-              <span className="font-bold text-white">${tax.toFixed(2)}</span>
+              <span className="font-bold text-white">₹{tax.toFixed(2)}</span>
             </div>
             <div className="flex items-center justify-between border-t border-gaming-border/60 pt-4 text-base font-bold text-white">
               <span className="font-gaming uppercase tracking-wider">Grand Total</span>
-              <span className="font-gaming text-gaming-cyan text-xl tracking-wide">${grandTotal.toFixed(2)}</span>
+              <span className="font-gaming text-gaming-cyan text-xl tracking-wide">₹{grandTotal.toFixed(2)}</span>
             </div>
           </div>
 

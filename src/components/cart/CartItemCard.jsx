@@ -50,7 +50,7 @@ export default function CartItemCard({ item, onQuantityChange, onRemove, onWishl
                 </div>
                 <div className="flex items-center gap-2 text-gaming-cyan">
                   <ShieldCheck className="h-4.5 w-4.5" />
-                  <span>Security Deposit: <strong>${deposit.toFixed(2)}</strong></span>
+                  <span>Security Deposit: <strong>₹{deposit.toFixed(2)}</strong></span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Layers className="h-4 w-4 text-slate-500" />
@@ -150,12 +150,12 @@ export default function CartItemCard({ item, onQuantityChange, onRemove, onWishl
           {/* Price display */}
           <div className="text-right flex items-baseline gap-2 self-end sm:self-auto">
             {originalPrice && (
-              <span className="text-xs text-slate-500 line-through font-semibold">${originalPrice.toFixed(2)}</span>
+              <span className="text-xs text-slate-500 line-through font-semibold">₹{originalPrice.toFixed(2)}</span>
             )}
             <span className={`text-xl font-extrabold font-gaming tracking-wide ${
               mode === 'rent' ? 'text-gaming-cyan' : 'text-white'
             }`}>
-              ${price.toFixed(2)}
+              ₹{price.toFixed(2)}
             </span>
           </div>
 

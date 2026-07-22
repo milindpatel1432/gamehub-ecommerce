@@ -438,7 +438,7 @@ export default function Dashboard() {
                         Check Rental Offers
                       </h4>
                       <p className="text-xs text-slate-300">
-                        Access games starting at $1.99
+                        Access games starting at ₹199
                       </p>
                     </div>
                   </div>
@@ -526,11 +526,11 @@ export default function Dashboard() {
                             <div>
                               {product.originalPrice && (
                                 <span className="text-xs text-slate-500 line-through block leading-none">
-                                  ${product.originalPrice.toFixed(2)}
+                                  ₹{product.originalPrice.toFixed(2)}
                                 </span>
                               )}
                               <span className="font-gaming text-lg font-extrabold text-white">
-                                ${product.buyPrice?.toFixed(2)}
+                                ₹{product.buyPrice?.toFixed(2)}
                               </span>
                             </div>
 
@@ -610,7 +610,7 @@ export default function Dashboard() {
                         </div>
                       </div>
                       <div className="flex items-center justify-between pt-2 border-t border-slate-800 gap-2">
-                        <span className="font-gaming text-xs font-extrabold text-cyan-400">${item.buyPrice?.toFixed(2)}</span>
+                        <span className="font-gaming text-xs font-extrabold text-cyan-400">₹{item.buyPrice?.toFixed(2)}</span>
                         <div className="flex items-center gap-3">
                           <button
                             onClick={() => {

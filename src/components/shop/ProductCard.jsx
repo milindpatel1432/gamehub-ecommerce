@@ -112,9 +112,9 @@ export default function ProductCard({ product }) {
         <div className="space-y-4 pt-2 border-t border-gaming-border/40">
           {/* Prices */}
           <div className="flex items-baseline gap-2">
-            <span className="text-xl font-bold text-white font-gaming">${buyPrice}</span>
+            <span className="text-xl font-bold text-white font-gaming">₹{buyPrice}</span>
             {originalPrice && (
-              <span className="text-xs text-slate-500 line-through font-semibold">${originalPrice}</span>
+              <span className="text-xs text-slate-500 line-through font-semibold">₹{originalPrice}</span>
             )}
           </div>
 
@@ -144,7 +144,7 @@ export default function ProductCard({ product }) {
                 onClick={() => navigate(`/product/${product.id || 1}`)}
                 className="w-full h-10 rounded-xl border border-gaming-border hover:border-gaming-cyan/60 bg-gaming-black/20 hover:bg-gaming-cyan/5 text-slate-300 hover:text-gaming-cyan font-semibold text-xs transition-all duration-300 cursor-pointer"
               >
-                Rent for ${rentPrice}/mo
+                Rent for ₹{rentPrice}/mo
               </button>
             )}
           </div>

@@ -50,7 +50,7 @@ export default function RegisterForm() {
     const pass = watchedPassword;
     if (!pass) return { label: '', color: 'bg-transparent', width: 'w-0' };
     if (pass.length < 6) return { label: 'Weak', color: 'bg-red-500', width: 'w-1/3' };
-    
+
     // Check complexity
     const hasLetter = /[a-zA-Z]/.test(pass);
     const hasDigit = /[0-9]/.test(pass);
@@ -103,9 +103,8 @@ export default function RegisterForm() {
               placeholder="Marcus Thorne"
               aria-invalid={!!errors.fullName}
               aria-describedby={errors.fullName ? 'fullName-error' : undefined}
-              className={`block h-12 w-full pl-11 pr-4 rounded-xl bg-gaming-black/60 border text-sm text-slate-200 placeholder-slate-600 focus:outline-none transition-all ${
-                errors.fullName ? 'border-red-500 focus:border-red-500' : 'border-gaming-border focus:border-gaming-cyan/60'
-              }`}
+              className={`block h-12 w-full pl-11 pr-4 rounded-xl bg-gaming-black/60 border text-sm text-slate-200 placeholder-slate-600 focus:outline-none transition-all ${errors.fullName ? 'border-red-500 focus:border-red-500' : 'border-gaming-border focus:border-gaming-cyan/60'
+                }`}
               {...register('fullName', NAME_VALIDATION)}
             />
           </div>
@@ -131,9 +130,8 @@ export default function RegisterForm() {
               placeholder="marcus"
               aria-invalid={!!errors.username}
               aria-describedby={errors.username ? 'username-error' : undefined}
-              className={`block h-12 w-full pl-11 pr-4 rounded-xl bg-gaming-black/60 border text-sm text-slate-200 placeholder-slate-600 focus:outline-none transition-all ${
-                errors.username ? 'border-red-500 focus:border-red-500' : 'border-gaming-border focus:border-gaming-cyan/60'
-              }`}
+              className={`block h-12 w-full pl-11 pr-4 rounded-xl bg-gaming-black/60 border text-sm text-slate-200 placeholder-slate-600 focus:outline-none transition-all ${errors.username ? 'border-red-500 focus:border-red-500' : 'border-gaming-border focus:border-gaming-cyan/60'
+                }`}
               {...register('username', USERNAME_VALIDATION)}
             />
           </div>
@@ -162,9 +160,8 @@ export default function RegisterForm() {
               placeholder="marcus@gamehub.com"
               aria-invalid={!!errors.email}
               aria-describedby={errors.email ? 'email-error' : undefined}
-              className={`block h-12 w-full pl-11 pr-4 rounded-xl bg-gaming-black/60 border text-sm text-slate-200 placeholder-slate-600 focus:outline-none transition-all ${
-                errors.email ? 'border-red-500 focus:border-red-500' : 'border-gaming-border focus:border-gaming-cyan/60'
-              }`}
+              className={`block h-12 w-full pl-11 pr-4 rounded-xl bg-gaming-black/60 border text-sm text-slate-200 placeholder-slate-600 focus:outline-none transition-all ${errors.email ? 'border-red-500 focus:border-red-500' : 'border-gaming-border focus:border-gaming-cyan/60'
+                }`}
               {...register('email', EMAIL_VALIDATION)}
             />
           </div>
@@ -190,9 +187,8 @@ export default function RegisterForm() {
               placeholder="1234567890"
               aria-invalid={!!errors.phone}
               aria-describedby={errors.phone ? 'phone-error' : undefined}
-              className={`block h-12 w-full pl-11 pr-4 rounded-xl bg-gaming-black/60 border text-sm text-slate-200 placeholder-slate-600 focus:outline-none transition-all ${
-                errors.phone ? 'border-red-500 focus:border-red-500' : 'border-gaming-border focus:border-gaming-cyan/60'
-              }`}
+              className={`block h-12 w-full pl-11 pr-4 rounded-xl bg-gaming-black/60 border text-sm text-slate-200 placeholder-slate-600 focus:outline-none transition-all ${errors.phone ? 'border-red-500 focus:border-red-500' : 'border-gaming-border focus:border-gaming-cyan/60'
+                }`}
               {...register('phone', PHONE_VALIDATION)}
             />
           </div>
@@ -214,7 +210,7 @@ export default function RegisterForm() {
             error={errors.password}
             registration={register('password', PASSWORD_VALIDATION)}
           />
-          
+
           {/* Password strength indicator layout */}
           {passwordStrength.label && (
             <div className="space-y-1.5">

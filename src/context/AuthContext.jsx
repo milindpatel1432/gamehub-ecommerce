@@ -7,6 +7,17 @@ const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authModalTab, setAuthModalTab] = useState('login'); // 'login' | 'register'
+
+  const openAuthModal = (tab = 'login') => {
+    setAuthModalTab(tab);
+    setIsAuthModalOpen(true);
+  };
+
+  const closeAuthModal = () => {
+    setIsAuthModalOpen(false);
+  };
 
   // ==========================
   // CHECK AUTH (Persistent Login)
@@ -52,7 +63,8 @@ export function AuthProvider({ children }) {
           localStorage.setItem(LOCAL_STORAGE_KEYS.AUTH_TOKEN, token);
         }
         setUser(response.data.user);
-        return { success: true };
+        closeAuthModal();
+        return { success: true, user: response.data.user };
       }
       return { success: false, error: 'Login failed' };
     } catch (error) {
@@ -135,6 +147,11 @@ export function AuthProvider({ children }) {
         register,
         checkAuth,
         updateProfile,
+        isAuthModalOpen,
+        authModalTab,
+        openAuthModal,
+        closeAuthModal,
+        setAuthModalTab,
       }}
     >
       {children}

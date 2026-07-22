@@ -25,12 +25,12 @@ export default function OrderSummary({ summaryData }) {
       <div className="space-y-4 text-sm text-slate-400">
         <div className="flex items-center justify-between">
           <span>Subtotal</span>
-          <span className="font-bold text-white">${subtotal.toFixed(2)}</span>
+          <span className="font-bold text-white">₹{subtotal.toFixed(2)}</span>
         </div>
         
         <div className="flex items-center justify-between">
           <span>Rental Charges</span>
-          <span className="font-bold text-white">${rentalCharges.toFixed(2)}</span>
+          <span className="font-bold text-white">₹{rentalCharges.toFixed(2)}</span>
         </div>
 
         <div className="flex items-center justify-between">
@@ -43,17 +43,17 @@ export default function OrderSummary({ summaryData }) {
               </div>
             </div>
           </div>
-          <span className="font-bold text-gaming-cyan">${deposit.toFixed(2)}</span>
+          <span className="font-bold text-gaming-cyan">₹{deposit.toFixed(2)}</span>
         </div>
 
         <div className="flex items-center justify-between">
           <span>Shipping</span>
-          <span className="font-bold text-green-500">{shipping === 0 ? 'Free' : `$${shipping.toFixed(2)}`}</span>
+          <span className="font-bold text-green-500">{shipping === 0 ? 'Free' : `₹${shipping.toFixed(2)}`}</span>
         </div>
 
         <div className="flex items-center justify-between pb-4 border-b border-gaming-border/60">
           <span>Tax</span>
-          <span className="font-bold text-white">${tax.toFixed(2)}</span>
+          <span className="font-bold text-white">₹{tax.toFixed(2)}</span>
         </div>
       </div>
 
@@ -64,7 +64,7 @@ export default function OrderSummary({ summaryData }) {
           <p className="text-[10px] text-slate-500 font-semibold uppercase">VAT Included</p>
         </div>
         <span className="text-3xl font-extrabold font-gaming text-white tracking-wide">
-          ${total.toFixed(2)}
+          ₹{total.toFixed(2)}
         </span>
       </div>
 

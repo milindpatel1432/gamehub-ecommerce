@@ -181,7 +181,7 @@ export default function ProductDetails() {
                       {prod.platform} | {prod.category}
                     </p>
                     <p className="text-base font-bold text-white font-gaming mt-2">
-                      ${prod.buyPrice}
+                      ₹{prod.buyPrice}
                     </p>
                   </div>
 

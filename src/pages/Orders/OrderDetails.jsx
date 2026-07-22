@@ -266,7 +266,7 @@ export default function OrderDetails() {
                 <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Shipping Method</p>
                 <p className="font-bold text-white mt-0.5">{order.deliveryMethod?.name || 'Standard Shipping'}</p>
                 <p className="text-xs text-slate-400">
-                  {shippingCost === 0 ? 'Free Shipping' : `$${shippingCost.toFixed(2)} Delivery Cost`}
+                  {shippingCost === 0 ? 'Free Shipping' : `₹${shippingCost.toFixed(2)} Delivery Cost`}
                 </p>
               </div>
               <div>
@@ -311,12 +311,12 @@ export default function OrderDetails() {
 
                 <div className="flex items-center justify-between sm:justify-end gap-10 text-right">
                   <div className="text-xs text-slate-400 space-y-0.5">
-                    <p>Price: <span className="text-white font-bold">${item.price.toFixed(2)}</span></p>
+                    <p>Price: <span className="text-white font-bold">₹{item.price.toFixed(2)}</span></p>
                     <p>Qty: <span className="text-white font-bold">{item.quantity}</span></p>
-                    {item.deposit > 0 && <p>Deposit: <span className="text-gaming-cyan font-bold">${item.deposit.toFixed(2)}</span></p>}
+                    {item.deposit > 0 && <p>Deposit: <span className="text-gaming-cyan font-bold">₹{item.deposit.toFixed(2)}</span></p>}
                   </div>
                   <span className="font-gaming text-sm font-bold text-gaming-cyan">
-                    ${((item.price + (item.deposit || 0)) * item.quantity).toFixed(2)}
+                    ₹{((item.price + (item.deposit || 0)) * item.quantity).toFixed(2)}
                   </span>
                 </div>
               </div>
@@ -327,24 +327,24 @@ export default function OrderDetails() {
           <div className="border-t border-gaming-border/60 pt-6 space-y-3.5 text-xs text-slate-400">
             <div className="flex items-center justify-between">
               <span>Subtotal</span>
-              <span className="font-bold text-white">${order.subtotal.toFixed(2)}</span>
+              <span className="font-bold text-white">₹{order.subtotal.toFixed(2)}</span>
             </div>
             <div className="flex items-center justify-between">
               <span>Shipping cost</span>
               <span className="font-bold text-white">
-                {shippingCost === 0 ? 'FREE' : `$${shippingCost.toFixed(2)}`}
+                {shippingCost === 0 ? 'FREE' : `₹${shippingCost.toFixed(2)}`}
               </span>
             </div>
             <div className="flex items-center justify-between">
               <span>Estimated Tax (8%)</span>
-              <span className="font-bold text-white">${order.tax.toFixed(2)}</span>
+              <span className="font-bold text-white">₹{order.tax.toFixed(2)}</span>
             </div>
             <div className="flex items-center justify-between border-t border-gaming-border/60 pt-4 text-base font-bold text-white">
               <span className="font-gaming uppercase tracking-wider flex items-center gap-2">
                 <ShieldCheck className="h-4.5 w-4.5 text-gaming-cyan" />
                 Grand Total
               </span>
-              <span className="font-gaming text-gaming-cyan text-xl tracking-wide">${order.total.toFixed(2)}</span>
+              <span className="font-gaming text-gaming-cyan text-xl tracking-wide">₹{order.total.toFixed(2)}</span>
             </div>
           </div>
         </div>

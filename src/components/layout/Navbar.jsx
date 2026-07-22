@@ -13,7 +13,7 @@ export default function Navbar() {
   const location = useLocation();
   const { wishlistItems } = useWishlist();
   const { getCartItemCount } = useCart();
-  const { isAuthenticated, user, logout } = useAuth();
+  const { isAuthenticated, user, logout, openAuthModal } = useAuth();
 
   const [isOpen, setIsOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -211,14 +211,14 @@ export default function Navbar() {
               </div>
             ) : (
               <div className="flex items-center gap-2 pl-2">
-                <Link
-                  to="/login"
-                  className="h-9 px-4 rounded-full text-xs font-semibold text-slate-300 hover:text-gaming-cyan hover:bg-white/5 border border-gaming-border/60 hover:border-gaming-cyan/30 transition-all flex items-center justify-center"
+                <button
+                  onClick={() => openAuthModal('login')}
+                  className="h-9 px-4 rounded-full text-xs font-semibold text-slate-300 hover:text-gaming-cyan hover:bg-white/5 border border-gaming-border/60 hover:border-gaming-cyan/30 transition-all flex items-center justify-center cursor-pointer"
                 >
                   Login
-                </Link>
+                </button>
                 <button
-                  onClick={() => navigate('/register')}
+                  onClick={() => openAuthModal('register')}
                   className="h-9 px-5 rounded-full bg-gradient-to-r from-gaming-cyan to-gaming-accent text-gaming-black font-bold text-xs tracking-wide hover:shadow-[0_0_20px_rgba(0,229,255,0.5)] transition-all duration-300 cursor-pointer flex items-center gap-2 group"
                 >
                   <span>Register</span>
@@ -349,7 +349,7 @@ export default function Navbar() {
                     <button
                       onClick={() => {
                         setIsOpen(false);
-                        navigate('/login');
+                        openAuthModal('login');
                       }}
                       className="w-full h-10 rounded-full border border-gaming-border bg-gaming-card text-slate-300 text-xs font-semibold hover:text-gaming-cyan transition-all cursor-pointer"
                     >
@@ -358,7 +358,7 @@ export default function Navbar() {
                     <button
                       onClick={() => {
                         setIsOpen(false);
-                        navigate('/register');
+                        openAuthModal('register');
                       }}
                       className="w-full h-10 rounded-full bg-gradient-to-r from-gaming-cyan to-gaming-accent text-gaming-black text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5"
                     >

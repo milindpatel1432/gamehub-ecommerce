@@ -164,7 +164,7 @@ export default function DashboardOrders({ limit = null }) {
                   <div className="text-left md:text-right">
                     <span className="text-[10px] text-slate-400 font-bold uppercase block">Total Amount</span>
                     <span className="font-sans text-xl font-extrabold text-white">
-                      ${order.total.toFixed(2)}
+                      ₹{order.total.toFixed(2)}
                     </span>
                   </div>
 

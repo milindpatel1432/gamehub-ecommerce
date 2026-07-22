@@ -136,11 +136,11 @@ export default function TrendingGames() {
                     <div className="grid grid-cols-2 gap-4 border-t border-gaming-border/50 pt-4">
                       <div>
                         <span className="text-[10px] text-slate-500 uppercase font-semibold">Buy New</span>
-                        <p className="text-sm font-bold text-white mt-0.5">${game.buyPrice}</p>
+                        <p className="text-sm font-bold text-white mt-0.5">₹{game.buyPrice}</p>
                       </div>
                       <div>
                         <span className="text-[10px] text-slate-500 uppercase font-semibold">Rent Weekly</span>
-                        <p className="text-sm font-bold text-gaming-cyan mt-0.5">{game.rentPrice ? `$${game.rentPrice}/mo` : 'N/A'}</p>
+                        <p className="text-sm font-bold text-gaming-cyan mt-0.5">{game.rentPrice ? `₹${game.rentPrice}/mo` : 'N/A'}</p>
                       </div>
                     </div>
 

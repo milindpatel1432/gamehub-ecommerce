@@ -97,7 +97,7 @@ export default function Wishlist() {
                       {item.title}
                     </h3>
                     <p className="text-sm font-bold text-gaming-cyan font-gaming">
-                      ${item.buyPrice ? item.buyPrice.toFixed(2) : '0.00'}
+                      ₹{item.buyPrice ? item.buyPrice.toFixed(2) : '0.00'}
                     </p>
                   </div>
 

@@ -108,10 +108,10 @@ export default function ProductInfoPanel({ product }) {
         <div className="space-y-4">
           {purchaseMode === 'buy' ? (
             <div className="flex items-baseline gap-3">
-              <span className="text-4xl font-extrabold font-gaming text-white tracking-wide">${product.buyPrice}</span>
+              <span className="text-4xl font-extrabold font-gaming text-white tracking-wide">₹{product.buyPrice}</span>
               {product.originalPrice && (
                 <>
-                  <span className="text-sm text-slate-500 line-through font-semibold">${product.originalPrice}</span>
+                  <span className="text-sm text-slate-500 line-through font-semibold">₹{product.originalPrice}</span>
                   <span className="text-[10px] font-bold text-white bg-orange-600 px-2 py-0.5 rounded">
                     -{Math.round((1 - product.buyPrice / product.originalPrice) * 100)}%
                   </span>
@@ -121,12 +121,12 @@ export default function ProductInfoPanel({ product }) {
           ) : (
             <div className="space-y-2">
               <div className="flex items-baseline gap-2">
-                <span className="text-4xl font-extrabold font-gaming text-gaming-cyan tracking-wide">${product.rentPrice}</span>
+                <span className="text-4xl font-extrabold font-gaming text-gaming-cyan tracking-wide">₹{product.rentPrice}</span>
                 <span className="text-xs text-slate-400 font-semibold">/ weekly</span>
               </div>
               <div className="flex items-center gap-2 p-3.5 rounded-xl border border-gaming-cyan/20 bg-gaming-cyan/5 text-xs text-gaming-cyan">
                 <ShieldCheck className="h-4.5 w-4.5" />
-                <span>Requires a fully-refundable <strong>$40.00 security deposit</strong>.</span>
+                <span>Requires a fully-refundable <strong>₹40.00 security deposit</strong>.</span>
               </div>
             </div>
           )}
