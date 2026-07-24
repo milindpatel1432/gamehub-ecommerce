@@ -84,7 +84,7 @@ export default function Navbar() {
 
   const links = [
     { name: 'Games', href: '/shop' },
-    { name: 'Consoles', href: '/shop' },
+    { name: 'Consoles', href: '/consoles' },
     { name: 'Rent', href: '/shop' },
     { name: 'Buy', href: '/shop' },
     { name: 'Deals', href: '/shop' },

@@ -29,12 +29,14 @@ import ServerError from '../pages/Error/ServerError';
 import Orders from '../pages/Orders/Orders';
 import OrderDetails from '../pages/Orders/OrderDetails';
 import About from '../pages/About/About';
+import Consoles from '../pages/Consoles/Consoles';
 
 export default function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/shop" element={<Shop />} />
+      <Route path="/consoles" element={<Consoles />} />
       <Route path="/about" element={<About />} />
       <Route path="/product/:id" element={<ProductDetails />} />
       
