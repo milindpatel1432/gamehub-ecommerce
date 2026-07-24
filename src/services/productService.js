@@ -1,6 +1,7 @@
 import api from './api';
 import { adminService } from './adminService';
 import { shopProducts } from '../data/games';
+import { consoleProducts } from '../data/consolesData';
 
 const mapProduct = (p) => {
   if (!p) return null;
@@ -131,10 +132,44 @@ export const productService = {
       console.warn('[productService] Product ID fetch error:', err.message);
     }
 
-    const fallbackProduct = shopProducts.find(p => String(p.id) === String(id));
+    const fallbackProduct = shopProducts.find(p => String(p.id) === String(id)) 
+      || consoleProducts.find(p => String(p.id) === String(id))
+      || (consoleProducts.map(c => ({
+          id: c.id,
+          title: c.name,
+          name: c.name,
+          brand: c.brand,
+          platform: c.brand,
+          category: 'Gaming Consoles',
+          buyPrice: c.discountedPrice,
+          originalPrice: c.originalPrice,
+          rating: c.rating,
+          reviews: c.reviewCount,
+          image: c.image,
+          images: [c.image],
+          description: c.description,
+          inStock: c.inStock
+        })).find(p => String(p.id) === String(id)));
+
     return {
       success: !!fallbackProduct,
-      data: fallbackProduct || shopProducts[0]
+      data: fallbackProduct ? {
+        id: fallbackProduct.id,
+        title: fallbackProduct.title || fallbackProduct.name,
+        name: fallbackProduct.name || fallbackProduct.title,
+        brand: fallbackProduct.brand,
+        platform: fallbackProduct.platform || fallbackProduct.brand || 'Console',
+        category: fallbackProduct.category || 'Gaming Consoles',
+        buyPrice: fallbackProduct.buyPrice || fallbackProduct.discountedPrice,
+        price: fallbackProduct.buyPrice || fallbackProduct.discountedPrice,
+        originalPrice: fallbackProduct.originalPrice,
+        rating: fallbackProduct.rating,
+        reviews: fallbackProduct.reviews || fallbackProduct.reviewCount || 100,
+        image: fallbackProduct.image,
+        images: fallbackProduct.images || [fallbackProduct.image],
+        description: fallbackProduct.description,
+        inStock: fallbackProduct.inStock !== false
+      } : shopProducts[0]
     };
   },
 

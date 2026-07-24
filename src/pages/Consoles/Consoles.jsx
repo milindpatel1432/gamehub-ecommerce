@@ -1,5 +1,6 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Link, useNavigate } from 'react-router-dom';
 import { 
   Search, Filter, ShoppingBag, Heart, Eye, Check, ArrowRight, Star, 
   ShieldCheck, Zap, Lock, RotateCcw, Headphones, Award, ChevronDown, 
@@ -17,6 +18,7 @@ import {
 import { productService } from '../../services/productService';
 import { useCart } from '../../context/CartContext';
 import { useWishlist } from '../../context/WishlistContext';
+import { useAuth } from '../../context/AuthContext';
 import { successToast, infoToast } from '../../utils/toast';
 
 const ICON_MAP = {
@@ -29,10 +31,16 @@ const ICON_MAP = {
 };
 
 export default function Consoles() {
+  const navigate = useNavigate();
   const { addToCart } = useCart();
   const { isWishlisted, addToWishlist: addToWishlistContext, removeFromWishlist } = useWishlist();
+  const { isAuthenticated, openAuthModal } = useAuth();
 
   const handleToggleWishlist = (product) => {
+    if (!isAuthenticated) {
+      openAuthModal('login');
+      return;
+    }
     if (isWishlisted(product.id)) {
       removeFromWishlist(product.id);
     } else {
@@ -171,7 +179,26 @@ export default function Consoles() {
     });
   }, [productsList, selectedBrand, selectedEdition, selectedStorage, selectedCondition, inStockOnly, priceRange, sortBy, searchQuery]);
 
+  // Pagination State & Reset
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedBrand, selectedEdition, selectedStorage, selectedCondition, inStockOnly, priceRange, sortBy, searchQuery]);
+
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage) || 1;
+
+  const paginatedProducts = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filteredProducts.slice(start, start + itemsPerPage);
+  }, [filteredProducts, currentPage, itemsPerPage]);
+
   const handleAddToCart = (product) => {
+    if (!isAuthenticated) {
+      openAuthModal('login');
+      return;
+    }
     addToCart({
       _id: product.id,
       id: product.id,
@@ -240,26 +267,6 @@ export default function Consoles() {
               <p className="text-base sm:text-lg text-slate-300 max-w-2xl leading-relaxed">
                 Explore the latest PlayStation, Xbox, Nintendo, and handheld gaming consoles with official warranty, exclusive bundles, and fast delivery.
               </p>
-
-              {/* CTAs */}
-              <div className="flex flex-wrap items-center gap-4 pt-2">
-                <button
-                  onClick={scrollToCatalog}
-                  className="h-13 px-8 rounded-full bg-gradient-to-r from-gaming-cyan to-gaming-accent text-gaming-black font-bold text-sm tracking-wide hover:shadow-[0_0_25px_rgba(0,229,255,0.5)] transition-all duration-300 flex items-center gap-3 cursor-pointer group"
-                >
-                  <ShoppingBag className="w-4 h-4" />
-                  <span>Shop Consoles</span>
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </button>
-
-                <button
-                  onClick={scrollToCompare}
-                  className="h-13 px-8 rounded-full border border-gaming-cyan/40 bg-gaming-black/60 hover:bg-gaming-card text-white font-semibold text-sm hover:border-gaming-cyan hover:shadow-[0_0_15px_rgba(0,229,255,0.2)] transition-all duration-300 flex items-center gap-2 cursor-pointer"
-                >
-                  <Scale className="w-4 h-4 text-gaming-cyan" />
-                  <span>Compare Consoles</span>
-                </button>
-              </div>
 
               {/* Badges Bar */}
               <div className="grid grid-cols-3 gap-4 pt-6 border-t border-gaming-border/60">
@@ -411,12 +418,11 @@ export default function Consoles() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start relative">
             
-            {/* Desktop Sticky Filter Sidebar */}
-            <div className="hidden lg:block lg:col-span-3 space-y-6">
-              <div className="sticky top-24 rounded-2xl border border-gaming-border bg-gaming-card/50 p-6 backdrop-blur-xl space-y-6">
-                <div className="flex items-center justify-between border-b border-gaming-border pb-4">
+            {/* Desktop Fixed Pinned Filter Sidebar */}
+            <div className="hidden lg:block lg:col-span-3 sticky top-24 self-start max-h-[calc(100vh-7rem)] overflow-y-auto rounded-2xl border border-gaming-border bg-gaming-card/50 p-6 backdrop-blur-xl space-y-6 scrollbar-thin scrollbar-thumb-gaming-cyan/30 pr-3">
+              <div className="flex items-center justify-between border-b border-gaming-border pb-4">
                   <span className="font-gaming text-sm font-bold text-white flex items-center gap-2">
                     <Filter className="w-4 h-4 text-gaming-cyan" /> Filters
                   </span>
@@ -537,132 +543,184 @@ export default function Consoles() {
                   />
                 </div>
               </div>
-            </div>
 
             {/* Product Cards Grid */}
-            <div className="lg:col-span-9">
-              {filteredProducts.length === 0 ? (
+            <div className="lg:col-span-9 flex flex-col justify-between">
+              {paginatedProducts.length === 0 ? (
                 <div className="p-12 rounded-3xl border border-gaming-border bg-gaming-card/40 text-center space-y-4">
                   <Gamepad2 className="w-12 h-12 text-slate-500 mx-auto" />
                   <h3 className="font-gaming text-lg font-bold text-white">No Consoles Found</h3>
                   <p className="text-xs text-slate-400">Try adjusting your filter options or price slider.</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredProducts.map((product) => {
-                    const wishlisted = isWishlisted(product.id);
-                    const isCompared = compareItems.some(i => i.id === product.id);
+                <div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {paginatedProducts.map((product) => {
+                      const wishlisted = isWishlisted(product.id);
+                      const isCompared = compareItems.some(i => i.id === product.id);
 
-                    return (
-                      <motion.div
-                        key={product.id}
-                        layout
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className="glass-card flex flex-col rounded-2xl border border-gaming-border bg-gaming-card/60 p-5 hover:border-gaming-cyan/50 hover:shadow-[0_0_30px_rgba(0,229,255,0.15)] transition-all duration-300 relative group"
-                      >
-                        {/* Image Container */}
-                        <div className="relative h-48 w-full rounded-xl overflow-hidden bg-gaming-black/60 mb-4">
-                          <img
-                            src={product.image}
-                            alt={product.name}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                          />
+                      return (
+                        <motion.div
+                          key={product.id}
+                          layout
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          className="glass-card flex flex-col rounded-2xl border border-gaming-border bg-gaming-card/60 p-5 hover:border-gaming-cyan/50 hover:shadow-[0_0_30px_rgba(0,229,255,0.15)] transition-all duration-300 relative group"
+                        >
+                          {/* Image Container */}
+                          <div className="relative h-48 w-full rounded-xl overflow-hidden bg-gaming-black/60 mb-4">
+                            <Link to={`/product/${product.id}`} className="block w-full h-full">
+                              <img
+                                src={product.image}
+                                alt={product.name}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                              />
+                            </Link>
 
-                          {/* Top Badges */}
-                          <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5">
-                            <span className="px-2 py-0.5 rounded-full bg-gaming-cyan/90 text-gaming-black text-[9px] font-extrabold uppercase">
-                              {product.badge}
-                            </span>
-                          </div>
-
-                          {/* Top Wishlist Heart Action */}
-                          <button
-                            onClick={() => handleToggleWishlist(product)}
-                            className={`absolute top-2.5 right-2.5 w-8 h-8 rounded-full border flex items-center justify-center transition-all cursor-pointer ${
-                              wishlisted
-                                ? 'bg-red-500/20 border-red-500 text-red-500 shadow-[0_0_10px_rgba(239,68,68,0.4)]'
-                                : 'bg-gaming-black/60 border-white/20 text-slate-300 hover:text-white'
-                            }`}
-                          >
-                            <Heart className={`w-4 h-4 ${wishlisted ? 'fill-current' : ''}`} />
-                          </button>
-                        </div>
-
-                        {/* Card Details */}
-                        <div className="flex-1 flex flex-col justify-between space-y-3">
-                          <div>
-                            <div className="flex items-center justify-between text-[11px] text-slate-400 mb-1">
-                              <span className="font-semibold text-gaming-cyan">{product.brand}</span>
-                              <span className="flex items-center gap-1 text-amber-400 font-bold">
-                                <Star className="w-3 h-3 fill-current" /> {product.rating} ({product.reviewCount})
+                            {/* Top Badges */}
+                            <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 pointer-events-none">
+                              <span className="px-2 py-0.5 rounded-full bg-gaming-cyan/90 text-gaming-black text-[9px] font-extrabold uppercase">
+                                {product.badge}
                               </span>
                             </div>
 
-                            <h3 className="font-gaming text-base font-bold text-white line-clamp-1 group-hover:text-gaming-cyan transition-colors">
-                              {product.name}
-                            </h3>
-                            <p className="text-xs text-slate-400 line-clamp-2 mt-1 leading-relaxed">
-                              {product.description}
-                            </p>
+                            {/* Top Wishlist Heart Action */}
+                            <button
+                              onClick={() => handleToggleWishlist(product)}
+                              className={`absolute top-2.5 right-2.5 w-8 h-8 rounded-full border flex items-center justify-center transition-all cursor-pointer z-10 ${
+                                wishlisted
+                                  ? 'bg-red-500/20 border-red-500 text-red-500 shadow-[0_0_10px_rgba(239,68,68,0.4)]'
+                                  : 'bg-gaming-black/60 border-white/20 text-slate-300 hover:text-white'
+                              }`}
+                            >
+                              <Heart className={`w-4 h-4 ${wishlisted ? 'fill-current' : ''}`} />
+                            </button>
                           </div>
 
-                          {/* Specs Pills */}
-                          <div className="flex items-center gap-2 text-[10px] text-slate-300 pt-2 border-t border-gaming-border/40">
-                            <span className="px-2 py-0.5 rounded bg-white/5 border border-white/10">{product.storage}</span>
-                            <span className="px-2 py-0.5 rounded bg-white/5 border border-white/10">{product.edition}</span>
-                          </div>
-
-                          {/* Price Row */}
-                          <div className="flex items-baseline justify-between pt-2">
+                          {/* Card Details */}
+                          <div className="flex-1 flex flex-col justify-between space-y-3">
                             <div>
-                              <span className="text-[10px] text-slate-500 line-through mr-1.5">
-                                ₹{product.originalPrice.toLocaleString('en-IN')}
-                              </span>
-                              <span className="font-gaming text-lg font-bold text-white">
-                                ₹{product.discountedPrice.toLocaleString('en-IN')}
+                              <div className="flex items-center justify-between text-[11px] text-slate-400 mb-1">
+                                <span className="font-semibold text-gaming-cyan">{product.brand}</span>
+                                <span className="flex items-center gap-1 text-amber-400 font-bold">
+                                  <Star className="w-3 h-3 fill-current" /> {product.rating} ({product.reviewCount})
+                                </span>
+                              </div>
+
+                              <Link to={`/product/${product.id}`}>
+                                <h3 className="font-gaming text-base font-bold text-white line-clamp-1 group-hover:text-gaming-cyan transition-colors">
+                                  {product.name}
+                                </h3>
+                              </Link>
+                              <p className="text-xs text-slate-400 line-clamp-2 mt-1 leading-relaxed">
+                                {product.description}
+                              </p>
+                            </div>
+
+                            {/* Specs Pills */}
+                            <div className="flex items-center gap-2 text-[10px] text-slate-300 pt-2 border-t border-gaming-border/40">
+                              <span className="px-2 py-0.5 rounded bg-white/5 border border-white/10">{product.storage}</span>
+                              <span className="px-2 py-0.5 rounded bg-white/5 border border-white/10">{product.edition}</span>
+                            </div>
+
+                            {/* Price Row */}
+                            <div className="flex items-baseline justify-between pt-2">
+                              <div>
+                                <span className="text-[10px] text-slate-500 line-through mr-1.5">
+                                  ₹{product.originalPrice.toLocaleString('en-IN')}
+                                </span>
+                                <span className="font-gaming text-lg font-bold text-white">
+                                  ₹{product.discountedPrice.toLocaleString('en-IN')}
+                                </span>
+                              </div>
+                              <span className="text-[10px] text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded">
+                                In Stock
                               </span>
                             </div>
-                            <span className="text-[10px] text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded">
-                              In Stock
-                            </span>
-                          </div>
 
-                          {/* Action Buttons */}
-                          <div className="grid grid-cols-2 gap-2 pt-2">
+                            {/* Action Buttons */}
+                            <div className="grid grid-cols-2 gap-2 pt-2">
+                              <button
+                                onClick={() => setQuickViewProduct(product)}
+                                className="h-9 rounded-xl border border-gaming-border bg-gaming-black/60 hover:bg-gaming-card text-slate-200 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                              >
+                                <Eye className="w-3.5 h-3.5 text-gaming-cyan" />
+                                <span>Specs</span>
+                              </button>
+
+                              <button
+                                onClick={() => handleAddToCart(product)}
+                                className="h-9 rounded-xl bg-gradient-to-r from-gaming-cyan to-gaming-accent text-gaming-black font-bold text-xs flex items-center justify-center gap-1.5 hover:shadow-[0_0_15px_rgba(0,229,255,0.4)] transition-all cursor-pointer"
+                              >
+                                <ShoppingBag className="w-3.5 h-3.5" />
+                                <span>Add Cart</span>
+                              </button>
+                            </div>
+
+                            {/* Compare Toggle */}
                             <button
-                              onClick={() => setQuickViewProduct(product)}
-                              className="h-9 rounded-xl border border-gaming-border bg-gaming-black/60 hover:bg-gaming-card text-slate-200 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                              onClick={() => handleToggleCompare(product)}
+                              className={`w-full py-1.5 text-[11px] font-semibold flex items-center justify-center gap-1.5 rounded-lg border transition-all cursor-pointer ${
+                                isCompared
+                                  ? 'bg-gaming-cyan/10 border-gaming-cyan text-gaming-cyan'
+                                  : 'border-gaming-border/60 text-slate-400 hover:text-slate-200'
+                              }`}
                             >
-                              <Eye className="w-3.5 h-3.5 text-gaming-cyan" />
-                              <span>Specs</span>
-                            </button>
-
-                            <button
-                              onClick={() => handleAddToCart(product)}
-                              className="h-9 rounded-xl bg-gradient-to-r from-gaming-cyan to-gaming-accent text-gaming-black font-bold text-xs flex items-center justify-center gap-1.5 hover:shadow-[0_0_15px_rgba(0,229,255,0.4)] transition-all cursor-pointer"
-                            >
-                              <ShoppingBag className="w-3.5 h-3.5" />
-                              <span>Add Cart</span>
+                              <Scale className="w-3 h-3" />
+                              <span>{isCompared ? 'Compared (Added)' : 'Compare Spec'}</span>
                             </button>
                           </div>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
 
-                          {/* Compare Toggle */}
+                  {/* Pagination Bar */}
+                  {totalPages > 1 && (
+                    <div className="flex items-center justify-center gap-2 mt-10 pt-6 border-t border-gaming-border/60">
+                      <button
+                        disabled={currentPage === 1}
+                        onClick={() => {
+                          setCurrentPage((p) => Math.max(p - 1, 1));
+                          scrollToCatalog();
+                        }}
+                        className="h-10 px-4 rounded-xl border border-gaming-border bg-gaming-card text-xs font-semibold text-slate-300 hover:border-gaming-cyan/40 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
+                      >
+                        Previous
+                      </button>
+
+                      {[...Array(totalPages)].map((_, idx) => {
+                        const pageNum = idx + 1;
+                        return (
                           <button
-                            onClick={() => handleToggleCompare(product)}
-                            className={`w-full py-1.5 text-[11px] font-semibold flex items-center justify-center gap-1.5 rounded-lg border transition-all cursor-pointer ${
-                              isCompared
-                                ? 'bg-gaming-cyan/10 border-gaming-cyan text-gaming-cyan'
-                                : 'border-gaming-border/60 text-slate-400 hover:text-slate-200'
+                            key={pageNum}
+                            onClick={() => {
+                              setCurrentPage(pageNum);
+                              scrollToCatalog();
+                            }}
+                            className={`h-10 w-10 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                              currentPage === pageNum
+                                ? 'bg-gaming-cyan text-gaming-black shadow-[0_0_15px_rgba(0,229,255,0.4)] font-bold'
+                                : 'border border-gaming-border bg-gaming-card text-slate-300 hover:border-gaming-cyan/40'
                             }`}
                           >
-                            <Scale className="w-3 h-3" />
-                            <span>{isCompared ? 'Compared (Added)' : 'Compare Spec'}</span>
+                            {pageNum}
                           </button>
-                        </div>
-                      </motion.div>
-                    );
-                  })}
+                        );
+                      })}
+
+                      <button
+                        disabled={currentPage === totalPages}
+                        onClick={() => {
+                          setCurrentPage((p) => Math.min(p + 1, totalPages));
+                          scrollToCatalog();
+                        }}
+                        className="h-10 px-4 rounded-xl border border-gaming-border bg-gaming-card text-xs font-semibold text-slate-300 hover:border-gaming-cyan/40 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
+                      >
+                        Next
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -776,6 +834,10 @@ export default function Consoles() {
 
                   <button
                     onClick={() => {
+                      if (!isAuthenticated) {
+                        openAuthModal('login');
+                        return;
+                      }
                       addToCart({
                         _id: bundle.id,
                         id: bundle.id,
@@ -798,166 +860,6 @@ export default function Consoles() {
       </section>
 
 
-      {/* ========================================================================= */}
-      {/* 6. WHY BUY FROM GAMEHUB */}
-      {/* ========================================================================= */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 border-b border-gaming-border bg-gaming-black/40">
-        <div className="mx-auto max-w-7xl">
-          <div className="text-center mb-14">
-            <h2 className="font-gaming text-2xl sm:text-3xl font-extrabold text-white tracking-wide">
-              Why Buy Consoles From GameHub?
-            </h2>
-            <p className="text-sm text-slate-400 mt-2">Your trust, safety, and authentic gaming experience are our top priorities.</p>
-            <div className="h-1 w-16 bg-gaming-cyan mx-auto mt-3 rounded-full" />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {whyChooseGameHub.map((feature, idx) => {
-              const IconComp = ICON_MAP[feature.icon] || ShieldCheck;
-
-              return (
-                <div
-                  key={idx}
-                  className="glass-card p-6 rounded-2xl border border-gaming-border bg-gaming-card/40 hover:border-gaming-cyan/40 transition-all space-y-3"
-                >
-                  <div className="w-12 h-12 rounded-xl bg-gaming-cyan/10 border border-gaming-cyan/30 flex items-center justify-center text-gaming-cyan shadow-[0_0_15px_rgba(0,229,255,0.2)]">
-                    <IconComp className="w-6 h-6" />
-                  </div>
-                  <h3 className="font-gaming text-base font-bold text-white">{feature.title}</h3>
-                  <p className="text-xs text-slate-400 leading-relaxed">{feature.description}</p>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-
-      {/* ========================================================================= */}
-      {/* 7. CUSTOMER REVIEWS */}
-      {/* ========================================================================= */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 border-b border-gaming-border">
-        <div className="mx-auto max-w-7xl">
-          <div className="text-center mb-12">
-            <span className="text-xs font-bold uppercase text-gaming-cyan tracking-wider">Verified Gamer Feedback</span>
-            <h2 className="font-gaming text-2xl sm:text-3xl font-extrabold text-white mt-1">
-              What Gamers Say About Us
-            </h2>
-            <div className="h-1 w-16 bg-gaming-cyan mx-auto mt-3 rounded-full" />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {consoleReviews.map((rev) => (
-              <div key={rev.id} className="glass-card p-6 rounded-3xl border border-gaming-border bg-gaming-card/50 space-y-4 relative">
-                <div className="flex items-center gap-3">
-                  <img src={rev.avatar} alt={rev.name} className="w-11 h-11 rounded-full object-cover border border-gaming-cyan/50" />
-                  <div>
-                    <h4 className="font-gaming text-sm font-bold text-white">{rev.name}</h4>
-                    <span className="text-[10px] text-gaming-cyan font-semibold">{rev.purchased}</span>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-1 text-amber-400">
-                  {[...Array(rev.rating)].map((_, i) => (
-                    <Star key={i} className="w-3.5 h-3.5 fill-current" />
-                  ))}
-                </div>
-
-                <p className="text-xs text-slate-300 leading-relaxed italic">"{rev.review}"</p>
-                <span className="text-[10px] text-slate-500 block text-right">{rev.date}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-
-      {/* ========================================================================= */}
-      {/* 8. FREQUENTLY ASKED QUESTIONS */}
-      {/* ========================================================================= */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 border-b border-gaming-border bg-gaming-black/50">
-        <div className="mx-auto max-w-4xl">
-          <div className="text-center mb-12">
-            <h2 className="font-gaming text-2xl sm:text-3xl font-extrabold text-white">
-              Console Buying FAQs
-            </h2>
-            <p className="text-sm text-slate-400 mt-2">Got questions regarding warranties, shipping, or returns? We have answers.</p>
-            <div className="h-1 w-16 bg-gaming-cyan mx-auto mt-3 rounded-full" />
-          </div>
-
-          <div className="space-y-4">
-            {consoleFAQs.map((faq, idx) => {
-              const isOpen = expandedFAQ === idx;
-
-              return (
-                <div
-                  key={idx}
-                  className="rounded-2xl border border-gaming-border bg-gaming-card/60 overflow-hidden transition-all"
-                >
-                  <button
-                    onClick={() => setExpandedFAQ(isOpen ? -1 : idx)}
-                    className="w-full p-5 text-left flex items-center justify-between font-gaming text-sm font-bold text-white hover:text-gaming-cyan cursor-pointer transition-colors"
-                  >
-                    <span>{faq.question}</span>
-                    <ChevronDown className={`w-4 h-4 text-gaming-cyan transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-                  </button>
-
-                  <AnimatePresence>
-                    {isOpen && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        className="px-5 pb-5 text-xs text-slate-300 leading-relaxed border-t border-gaming-border/40 pt-3"
-                      >
-                        {faq.answer}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-
-      {/* ========================================================================= */}
-      {/* 9. NEWSLETTER SECTION */}
-      {/* ========================================================================= */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-5xl rounded-3xl border border-gaming-cyan/40 bg-gradient-to-r from-gaming-black via-gaming-card to-gaming-black p-8 sm:p-12 text-center relative overflow-hidden shadow-[0_0_50px_rgba(0,229,255,0.15)]">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-gaming-cyan/10 rounded-full blur-3xl pointer-events-none" />
-          
-          <span className="px-3.5 py-1 rounded-full bg-gaming-cyan/10 border border-gaming-cyan/30 text-gaming-cyan text-xs font-semibold uppercase">
-            Stay Ahead Of The Game
-          </span>
-
-          <h2 className="font-gaming text-3xl sm:text-4xl font-extrabold text-white mt-4">
-            Never Miss The Next Console Drop
-          </h2>
-          <p className="text-sm text-slate-300 max-w-xl mx-auto mt-2 leading-relaxed">
-            Subscribe to receive instant updates on PS5 Pro stock alerts, Xbox Game Pass bundles, and limited-time discount drops.
-          </p>
-
-          <form onSubmit={handleSubscribeNewsletter} className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3 max-w-md mx-auto">
-            <input
-              type="email"
-              required
-              placeholder="Enter your email address..."
-              value={newsletterEmail}
-              onChange={(e) => setNewsletterEmail(e.target.value)}
-              className="w-full sm:w-80 h-12 px-4 rounded-full bg-gaming-black border border-gaming-border text-xs text-white placeholder-slate-500 focus:outline-none focus:border-gaming-cyan shadow-inner"
-            />
-            <button
-              type="submit"
-              className="w-full sm:w-auto h-12 px-8 rounded-full bg-gradient-to-r from-gaming-cyan to-gaming-accent text-gaming-black font-bold text-xs tracking-wider uppercase hover:shadow-[0_0_20px_rgba(0,229,255,0.5)] transition-all cursor-pointer flex-shrink-0"
-            >
-              Subscribe
-            </button>
-          </form>
-        </div>
-      </section>
 
 
       {/* ========================================================================= */}
