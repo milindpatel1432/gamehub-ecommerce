@@ -127,15 +127,6 @@ export function AuthProvider({ children }) {
     };
   };
 
-  // Until authentication is checked, do not render the application
-  if (loading) {
-    return (
-      <div className="flex h-screen w-screen items-center justify-center bg-gaming-dark text-gaming-cyan font-bold text-lg">
-        Loading...
-      </div>
-    );
-  }
-
   return (
     <AuthContext.Provider
       value={{
