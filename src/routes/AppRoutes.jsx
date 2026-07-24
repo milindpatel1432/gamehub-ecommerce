@@ -33,6 +33,9 @@ import Consoles from '../pages/Consoles/Consoles';
 import Rentals from '../pages/Rentals/Rentals';
 import Deals from '../pages/Deals/Deals';
 import Contact from '../pages/Contact/Contact';
+import Privacy from '../pages/Legal/Privacy';
+import Terms from '../pages/Legal/Terms';
+import Careers from '../pages/Careers/Careers';
 
 export default function AppRoutes() {
   return (
@@ -44,6 +47,9 @@ export default function AppRoutes() {
       <Route path="/deals" element={<Deals />} />
       <Route path="/about" element={<About />} />
       <Route path="/contact" element={<Contact />} />
+      <Route path="/privacy" element={<Privacy />} />
+      <Route path="/terms" element={<Terms />} />
+      <Route path="/careers" element={<Careers />} />
       <Route path="/product/:id" element={<ProductDetails />} />
       
       {/* Protected Routes */}
