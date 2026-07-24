@@ -30,6 +30,9 @@ import Orders from '../pages/Orders/Orders';
 import OrderDetails from '../pages/Orders/OrderDetails';
 import About from '../pages/About/About';
 import Consoles from '../pages/Consoles/Consoles';
+import Rentals from '../pages/Rentals/Rentals';
+import Deals from '../pages/Deals/Deals';
+import Contact from '../pages/Contact/Contact';
 
 export default function AppRoutes() {
   return (
@@ -37,7 +40,10 @@ export default function AppRoutes() {
       <Route path="/" element={<Home />} />
       <Route path="/shop" element={<Shop />} />
       <Route path="/consoles" element={<Consoles />} />
+      <Route path="/rentals" element={<Rentals />} />
+      <Route path="/deals" element={<Deals />} />
       <Route path="/about" element={<About />} />
+      <Route path="/contact" element={<Contact />} />
       <Route path="/product/:id" element={<ProductDetails />} />
       
       {/* Protected Routes */}
