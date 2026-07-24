@@ -3,6 +3,7 @@ import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
 import AppRoutes from './routes/AppRoutes';
 import AuthModal from './components/auth/AuthModal';
+import Preloader from './components/ui/Preloader';
 import { WishlistProvider } from './context/WishlistContext';
 import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext';
@@ -14,6 +15,9 @@ function AppContent() {
 
   return (
     <div className="flex flex-col min-h-screen bg-gaming-dark text-slate-200 antialiased font-sans">
+      {/* Aesthetic AAA Preloader */}
+      <Preloader />
+
       <Toaster
         position="top-right"
         containerStyle={{

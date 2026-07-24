@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Search, Filter, ShoppingBag, Heart, Eye, Check, ArrowRight, Star, 
@@ -14,6 +14,7 @@ import {
   consoleReviews, 
   consoleFAQs 
 } from '../../data/consolesData';
+import { productService } from '../../services/productService';
 import { useCart } from '../../context/CartContext';
 import { useWishlist } from '../../context/WishlistContext';
 import { successToast, infoToast } from '../../utils/toast';
@@ -45,6 +46,8 @@ export default function Consoles() {
   };
 
   // State Management
+  const [productsList, setProductsList] = useState(consoleProducts);
+  const [isLoadingProducts, setIsLoadingProducts] = useState(false);
   const [selectedBrand, setSelectedBrand] = useState('All');
   const [selectedEdition, setSelectedEdition] = useState('All');
   const [selectedStorage, setSelectedStorage] = useState('All');
@@ -53,6 +56,63 @@ export default function Consoles() {
   const [priceRange, setPriceRange] = useState(80000);
   const [sortBy, setSortBy] = useState('featured');
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Fetch products from MongoDB API
+  useEffect(() => {
+    const fetchMongoDBProducts = async () => {
+      setIsLoadingProducts(true);
+      try {
+        const res = await productService.getAllProducts({ limit: 100 });
+        if (res?.success && Array.isArray(res.data) && res.data.length > 0) {
+          // Filter for Gaming Consoles or console brands
+          const consoleDbItems = res.data.filter(
+            (p) =>
+              p.category === 'Gaming Consoles' ||
+              p.category === 'Consoles' ||
+              ['Sony', 'Microsoft', 'Nintendo', 'Valve', 'ASUS', 'PlayStation', 'Xbox', 'Lenovo'].includes(p.brand)
+          );
+
+          if (consoleDbItems.length > 0) {
+            const mappedDbProducts = consoleDbItems.map((p) => ({
+              id: p.id || p._id,
+              name: p.title || p.name,
+              brand: p.brand === 'Sony' ? 'PlayStation' : p.brand === 'Microsoft' ? 'Xbox' : p.brand === 'Valve' ? 'Steam Deck' : p.brand === 'ASUS' ? 'ASUS ROG Ally' : (p.brand || 'PlayStation'),
+              edition: p.title?.includes('Digital') ? 'Digital' : p.title?.includes('Limited') ? 'Limited Edition' : 'Disc',
+              storage: p.title?.includes('2TB') ? '2TB' : p.title?.includes('1TB') ? '1TB' : p.title?.includes('512GB') ? '512GB' : p.title?.includes('64GB') ? '64GB' : '1TB',
+              color: 'Standard Edition',
+              condition: p.condition === 'Pre-owned' ? 'Refurbished' : 'New',
+              originalPrice: p.originalPrice || Math.round(p.buyPrice * 1.15),
+              discountedPrice: p.buyPrice || p.price,
+              rating: typeof p.rating === 'number' ? p.rating : (p.rating?.average || 4.8),
+              reviewCount: p.reviews || (p.rating?.count || 150),
+              inStock: p.stock > 0,
+              badge: p.featured ? 'FEATURED' : 'POPULAR',
+              image: p.image || p.thumbnail || 'https://images.unsplash.com/photo-1606813907291-d86efa9b94db?w=800&auto=format&fit=crop&q=80',
+              description: p.description || p.shortDescription,
+              specs: {
+                CPU: 'Custom High-Performance Processor',
+                GPU: 'Ray-Tracing Next-Gen Graphics',
+                RAM: '16GB High Speed GDDR6',
+                Storage: 'Custom Ultra-Fast SSD',
+                Output: '4K HDR at 120 FPS',
+              },
+            }));
+
+            // Combine backend MongoDB items with any unique static items
+            const dbIds = new Set(mappedDbProducts.map(item => item.id));
+            const remainingStatic = consoleProducts.filter(item => !dbIds.has(item.id));
+            setProductsList([...mappedDbProducts, ...remainingStatic]);
+          }
+        }
+      } catch (err) {
+        console.warn('[Consoles] Could not load from MongoDB backend API. Using local console data:', err);
+      } finally {
+        setIsLoadingProducts(false);
+      }
+    };
+
+    fetchMongoDBProducts();
+  }, []);
   
   // Modals & Panels
   const [quickViewProduct, setQuickViewProduct] = useState(null);
@@ -79,7 +139,7 @@ export default function Consoles() {
 
   // Filter & Sort Logic
   const filteredProducts = useMemo(() => {
-    return consoleProducts.filter((product) => {
+    return productsList.filter((product) => {
       if (selectedBrand !== 'All' && product.brand.toLowerCase() !== selectedBrand.toLowerCase()) {
         return false;
       }
@@ -106,10 +166,10 @@ export default function Consoles() {
       if (sortBy === 'price-low') return a.discountedPrice - b.discountedPrice;
       if (sortBy === 'price-high') return b.discountedPrice - a.discountedPrice;
       if (sortBy === 'rating') return b.rating - a.rating;
-      if (sortBy === 'newest') return b.id.localeCompare(a.id);
+      if (sortBy === 'newest') return String(b.id).localeCompare(String(a.id));
       return 0; // Default featured
     });
-  }, [selectedBrand, selectedEdition, selectedStorage, selectedCondition, inStockOnly, priceRange, sortBy, searchQuery]);
+  }, [productsList, selectedBrand, selectedEdition, selectedStorage, selectedCondition, inStockOnly, priceRange, sortBy, searchQuery]);
 
   const handleAddToCart = (product) => {
     addToCart({
