@@ -9,9 +9,16 @@ import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext';
 import { Toaster } from 'react-hot-toast';
 
+import { useEffect } from 'react';
+
 function AppContent() {
   const location = useLocation();
   const hideLayout = location.pathname.startsWith('/admin') || location.pathname.startsWith('/dashboard') || location.pathname.startsWith('/profile');
+
+  // Auto scroll to top banner on every page navigation
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
 
   return (
     <div className="flex flex-col min-h-screen bg-gaming-dark text-slate-200 antialiased font-sans">
