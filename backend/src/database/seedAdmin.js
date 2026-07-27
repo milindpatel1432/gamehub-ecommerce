@@ -4,27 +4,18 @@ export const seedAdmin = async () => {
   try {
     console.log('[Single Super Admin System] Auditing database admin accounts...');
 
-    // Audit check for multiple admin accounts
-    const allAdmins = await User.find({ role: 'admin' });
-    if (allAdmins.length > 1) {
-      console.warn(`[SECURITY AUDIT WARNING] Detected ${allAdmins.length} admin accounts in database!`);
-      allAdmins.forEach((adm, idx) => {
-        console.warn(`  Admin #${idx + 1}: ID=${adm._id}, Email=${adm.email}, Username=${adm.username}`);
-      });
-      console.warn('  -> Action Required: GameHub policy permits strictly ONE Super Admin. Non-super admin accounts should be reviewed.');
-    } else {
-      console.log(`[Single Super Admin System] Audit check passed. ${allAdmins.length} Admin account found.`);
-    }
+    // Clean up any stale demo admin account (admin@gamehub.com)
+    await User.deleteMany({ email: 'admin@gamehub.com' });
 
-    // Preserve and update existing Admin or create single Super Admin
+    // Find or create Super Admin: pinal@gmail.com (pinal1405)
     let superAdmin = await User.findOne({
-      $or: [{ role: 'admin' }, { email: 'admin@gamehub.com' }, { username: 'milindadmin' }]
+      $or: [{ email: 'pinal@gmail.com' }, { username: 'pinal1405' }]
     });
 
     const adminPayload = {
-      fullName: 'Milind Patel',
-      username: 'milindadmin',
-      email: 'admin@gamehub.com',
+      fullName: 'Pinal Admin',
+      username: 'pinal1405',
+      email: 'pinal@gmail.com',
       password: 'milind@2803',
       role: 'admin',
       isVerified: true,
@@ -33,28 +24,28 @@ export const seedAdmin = async () => {
 
     if (!superAdmin) {
       superAdmin = await User.create(adminPayload);
-      console.log('[Single Super Admin System] Permanent Super Admin account created successfully.');
+      console.log('[Single Super Admin System] Super Admin account (pinal@gmail.com) created successfully.');
     } else {
-      console.log(`[Single Super Admin System] Preserving and updating existing admin account (${superAdmin.email})...`);
+      console.log(`[Single Super Admin System] Updating Super Admin account (${superAdmin.email})...`);
       superAdmin.fullName = adminPayload.fullName;
       superAdmin.username = adminPayload.username;
       superAdmin.email = adminPayload.email;
       const isPasswordValid = await superAdmin.comparePassword(adminPayload.password);
       if (!isPasswordValid) {
-        superAdmin.password = adminPayload.password; // Triggers bcrypt pre-save hook only if password changed
+        superAdmin.password = adminPayload.password;
       }
       superAdmin.role = 'admin';
       superAdmin.isVerified = true;
       superAdmin.isBlocked = false;
       await superAdmin.save();
-      console.log('[Single Super Admin System] Permanent Super Admin account updated & synchronized.');
+      console.log('[Single Super Admin System] Super Admin account synchronized successfully.');
     }
 
     console.log('====================================================');
-    console.log('👑 PERMANENT SUPER ADMIN CREDENTIALS ACTIVE');
-    console.log('  Full Name: Milind Patel');
-    console.log('  Username:  milindadmin');
-    console.log('  Email:     admin@gamehub.com');
+    console.log('👑 SUPER ADMIN CREDENTIALS ACTIVE');
+    console.log('  Full Name: Pinal Admin');
+    console.log('  Username:  pinal1405');
+    console.log('  Email:     pinal@gmail.com');
     console.log('  Password:  milind@2803');
     console.log('  Role:      admin');
     console.log('====================================================');
