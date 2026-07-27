@@ -24,7 +24,7 @@ export default function DashboardOrders({ limit = null }) {
         }
       } catch (err) {
         console.error('Error fetching dashboard orders:', err);
-      } font-bold
+      }
       finally {
         setIsLoading(false);
       }
