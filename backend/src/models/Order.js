@@ -30,6 +30,15 @@ const OrderItemSchema = new mongoose.Schema({
   },
 });
 
+const TrackingHistorySchema = new mongoose.Schema({
+  title: { type: String, required: true },
+  description: { type: String },
+  location: { type: String },
+  timestamp: { type: Date, default: Date.now },
+  completed: { type: Boolean, default: false },
+  stepKey: { type: String },
+});
+
 const OrderSchema = new mongoose.Schema(
   {
     user: {
@@ -79,8 +88,33 @@ const OrderSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['Pending', 'Accepted', 'Processing', 'Shipped', 'Delivered', 'Cancelled'],
+      enum: ['Pending', 'Accepted', 'Processing', 'Shipped', 'Out for Delivery', 'Delivered', 'Cancelled'],
       default: 'Processing',
+    },
+    trackingInfo: {
+      currentStatus: { type: String, default: 'Processing' },
+      warehouseLocation: {
+        name: { type: String, default: 'GameHub Central Fulfillment Hub' },
+        lat: { type: Number, default: 19.0760 },
+        lng: { type: Number, default: 72.8777 },
+        address: { type: String, default: 'Plot 42, Logistics Park, BKC, Mumbai 400051' },
+      },
+      customerLocation: {
+        name: { type: String },
+        lat: { type: Number, default: 19.1136 },
+        lng: { type: Number, default: 72.8697 },
+        address: { type: String },
+      },
+      deliveryPartner: {
+        name: { type: String, default: 'Vikram Sharma' },
+        phone: { type: String, default: '+91 98200 11223' },
+        vehicleNumber: { type: String, default: 'MH-02-GB-9921' },
+        avatar: { type: String, default: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80' },
+        rating: { type: Number, default: 4.9 },
+      },
+      trackingHistory: [TrackingHistorySchema],
+      estimatedDelivery: { type: Date },
+      distanceRemaining: { type: String, default: '4.2 km' },
     },
   },
   {

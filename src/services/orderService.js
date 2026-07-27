@@ -60,6 +60,19 @@ export const orderService = {
     };
   },
 
+  getOrderTracking: async (id) => {
+    console.log(`[orderService] Fetching order tracking details for ID: ${id}...`);
+    const response = await axiosInstance.get(API_ENDPOINTS.ORDERS.TRACKING(id));
+    const data = response.data?.data || {};
+    return {
+      ...response.data,
+      data: {
+        ...data,
+        items: (data.items || []).map(mapOrderItem),
+      },
+    };
+  },
+
   createOrder: async (checkoutData) => {
     console.log('[orderService] Creating new order with payload:', checkoutData);
     const response = await axiosInstance.post(API_ENDPOINTS.ORDERS.CREATE, checkoutData);

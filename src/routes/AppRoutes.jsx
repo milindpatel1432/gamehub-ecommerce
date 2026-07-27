@@ -28,6 +28,7 @@ import Unauthorized from '../pages/Error/Unauthorized';
 import ServerError from '../pages/Error/ServerError';
 import Orders from '../pages/Orders/Orders';
 import OrderDetails from '../pages/Orders/OrderDetails';
+import OrderTracking from '../pages/Orders/OrderTracking';
 import About from '../pages/About/About';
 import Consoles from '../pages/Consoles/Consoles';
 import Rentals from '../pages/Rentals/Rentals';
@@ -106,6 +107,22 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute>
             <OrderDetails />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/orders/:id/track"
+        element={
+          <ProtectedRoute>
+            <OrderTracking />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/user/orders/:orderId/track"
+        element={
+          <ProtectedRoute>
+            <OrderTracking />
           </ProtectedRoute>
         }
       />

@@ -28,6 +28,7 @@ export const API_ENDPOINTS = {
     LIST: '/orders',
     CREATE: '/orders',
     DETAILS: (id) => `/orders/${id}`,
+    TRACKING: (id) => `/orders/${id}/tracking`,
     CANCEL: (id) => `/orders/${id}/cancel`,
     UPDATE_STATUS: (id) => `/orders/${id}/status`,
     ADMIN_LIST: '/orders/admin/all',

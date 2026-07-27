@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Calendar, MapPin, CreditCard, ShieldCheck, XCircle } from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin, CreditCard, ShieldCheck, XCircle, Truck } from 'lucide-react';
 import { orderService } from '../../services/orderService';
 import { paymentService } from '../../services/paymentService';
 import { successToast, errorToast, infoToast } from '../../utils/toast';
@@ -215,7 +215,15 @@ export default function OrderDetails() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <Link
+              to={`/orders/${order.id}/track`}
+              className="h-12 px-6 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer shadow-[0_0_15px_rgba(37,99,235,0.4)]"
+            >
+              <Truck className="h-4 w-4" />
+              Track Live Delivery
+            </Link>
+
             {order.paymentStatus === 'pending' && order.status !== 'Cancelled' && (
               <button
                 onClick={handlePaymentRetry}

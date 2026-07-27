@@ -25,11 +25,27 @@ export class AuthPage {
 
   async gotoLogin() {
     await this.page.goto('/login');
+    if (!this.page.url().includes('/login')) {
+      await this.page.evaluate(() => {
+        localStorage.clear();
+        sessionStorage.clear();
+      });
+      await this.page.context().clearCookies();
+      await this.page.goto('/login');
+    }
     await expect(this.emailInput).toBeVisible();
   }
 
   async gotoRegister() {
     await this.page.goto('/register');
+    if (!this.page.url().includes('/register')) {
+      await this.page.evaluate(() => {
+        localStorage.clear();
+        sessionStorage.clear();
+      });
+      await this.page.context().clearCookies();
+      await this.page.goto('/register');
+    }
     await expect(this.fullNameInput).toBeVisible();
   }
 
@@ -47,6 +63,14 @@ export class AuthPage {
       });
       const data = await response.json();
       if (data?.token) {
+        await this.page.context().addCookies([
+          {
+            name: 'token',
+            value: data.token,
+            domain: 'localhost',
+            path: '/',
+          },
+        ]);
         await this.page.addInitScript(({ token, user }) => {
           sessionStorage.setItem('gamehub_preloader_seen', 'true');
           localStorage.setItem('gamehub_token', token);

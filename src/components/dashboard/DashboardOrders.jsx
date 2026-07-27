@@ -24,7 +24,8 @@ export default function DashboardOrders({ limit = null }) {
         }
       } catch (err) {
         console.error('Error fetching dashboard orders:', err);
-      } finally {
+      } font-bold
+      finally {
         setIsLoading(false);
       }
     };
@@ -191,23 +192,14 @@ export default function DashboardOrders({ limit = null }) {
                       to={`/orders/${order.id}`}
                       className="h-9 px-4 rounded-xl border border-slate-700 hover:border-slate-500 bg-slate-900/60 text-slate-200 text-xs font-semibold flex items-center justify-center transition-all"
                     >
-                      View Details
+                      Details
                     </Link>
-                    {order.status === 'Processing' || order.status === 'Shipped' || order.status === 'Pending' || order.status === 'Accepted' ? (
-                      <button
-                        onClick={() => navigate(`/orders/${order.id}`)}
-                        className="h-9 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs transition-all cursor-pointer"
-                      >
-                        Track Order
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => handleBuyAgain(order)}
-                        className="h-9 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition-all cursor-pointer"
-                      >
-                        Buy Again
-                      </button>
-                    )}
+                    <button
+                      onClick={() => navigate(`/orders/${order.id}/track`)}
+                      className="h-9 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs transition-all cursor-pointer shadow-[0_0_12px_rgba(37,99,235,0.4)]"
+                    >
+                      Track Delivery
+                    </button>
                   </div>
                 </div>
               </motion.div>

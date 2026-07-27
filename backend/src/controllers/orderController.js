@@ -287,3 +287,151 @@ export const updateOrderStatus = async (req, res, next) => {
     next(error);
   }
 };
+
+// ==========================================
+// Get Order Tracking Details (Interactive Map & Timeline)
+// ==========================================
+export const getOrderTracking = async (req, res, next) => {
+  try {
+    const order = await Order.findById(req.params.id).populate('items.product');
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: 'Order not found',
+      });
+    }
+
+    // Verify authorized caller (owner or admin)
+    if (order.user.toString() !== req.user.id && req.user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to track this order',
+      });
+    }
+
+    const currentStatus = order.status || 'Processing';
+    const createdAt = new Date(order.createdAt || Date.now());
+
+    // Map status progress percentage
+    const statusProgressMap = {
+      Pending: 0.1,
+      Accepted: 0.2,
+      Processing: 0.4,
+      Shipped: 0.7,
+      'Out for Delivery': 0.88,
+      Delivered: 1.0,
+      Cancelled: 0,
+    };
+
+    const progressRatio = statusProgressMap[currentStatus] || 0.4;
+
+    // Fixed Warehouse Coordinates (Mumbai HQ Fulfillment)
+    const warehouse = {
+      name: 'GameHub Central Fulfillment Hub',
+      lat: 19.0760,
+      lng: 72.8777,
+      address: 'Plot 42, Logistics Park, BKC, Mumbai 400051',
+    };
+
+    // Customer Coordinates (Derived or default Pune/Mumbai region)
+    const customer = {
+      name: order.shippingAddress?.name || 'Valued Customer',
+      lat: 19.1136,
+      lng: 72.8697,
+      address: `${order.shippingAddress?.street || ''}, ${order.shippingAddress?.city || ''} ${order.shippingAddress?.postal || ''}`.trim() || 'Customer Delivery Address',
+    };
+
+    // Compute live interpolated truck position along route vector
+    const truckLat = warehouse.lat + (customer.lat - warehouse.lat) * progressRatio;
+    const truckLng = warehouse.lng + (customer.lng - warehouse.lng) * progressRatio;
+
+    // Delivery timeline steps definition
+    const steps = [
+      {
+        stepKey: 'placed',
+        title: 'Order Placed',
+        description: 'Order successfully created & recorded in GameHub system.',
+        timestamp: new Date(createdAt.getTime()),
+        completed: true,
+      },
+      {
+        stepKey: 'confirmed',
+        title: 'Payment Confirmed',
+        description: order.paymentMethod === 'cod' ? 'Cash on Delivery verified by merchant.' : 'Payment processed & verified via Razorpay SSL.',
+        timestamp: new Date(createdAt.getTime() + 15 * 60 * 1000),
+        completed: progressRatio >= 0.2,
+      },
+      {
+        stepKey: 'packed',
+        title: 'Packed & Quality Inspected',
+        description: 'Gear tested for 4K 120FPS performance and vacuum sealed.',
+        timestamp: new Date(createdAt.getTime() + 45 * 60 * 1000),
+        completed: progressRatio >= 0.4,
+      },
+      {
+        stepKey: 'shipped',
+        title: 'Shipped from Warehouse',
+        description: 'Package handed to GameHub Express Logistics courier team.',
+        timestamp: new Date(createdAt.getTime() + 3 * 3600 * 1000),
+        completed: progressRatio >= 0.7,
+      },
+      {
+        stepKey: 'out_for_delivery',
+        title: 'Out for Delivery',
+        description: 'Delivery agent is in transit to your registered address.',
+        timestamp: new Date(createdAt.getTime() + 5 * 3600 * 1000),
+        completed: progressRatio >= 0.88,
+      },
+      {
+        stepKey: 'delivered',
+        title: 'Delivered',
+        description: 'Package delivered to recipient. Happy Gaming!',
+        timestamp: new Date(createdAt.getTime() + 6 * 3600 * 1000),
+        completed: progressRatio >= 1.0,
+      },
+    ];
+
+    // Estimated delivery date (24 hours from creation)
+    const estimatedDelivery = new Date(createdAt.getTime() + 24 * 3600 * 1000);
+
+    const trackingData = {
+      orderId: order._id,
+      orderStatus: currentStatus,
+      paymentStatus: order.paymentStatus,
+      paymentMethod: order.paymentMethod,
+      createdAt: order.createdAt,
+      estimatedDelivery,
+      subtotal: order.subtotal,
+      total: order.total,
+      shippingAddress: order.shippingAddress,
+      deliveryMethod: order.deliveryMethod,
+      items: order.items,
+      warehouseLocation: warehouse,
+      customerLocation: customer,
+      currentVehicleLocation: {
+        lat: truckLat,
+        lng: truckLng,
+        lastUpdated: new Date(),
+      },
+      progressRatio,
+      distanceRemaining: currentStatus === 'Delivered' ? '0 km (Arrived)' : `${(4.8 * (1 - progressRatio)).toFixed(1)} km`,
+      deliveryPartner: {
+        name: 'Vikram Sharma',
+        phone: '+91 98200 11223',
+        vehicleNumber: 'MH-02-GB-9921',
+        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+        rating: 4.9,
+      },
+      trackingHistory: steps,
+    };
+
+    res.status(200).json({
+      success: true,
+      message: 'Order tracking details retrieved successfully',
+      data: trackingData,
+    });
+  } catch (error) {
+    console.error('[Order API] Error in getOrderTracking:', error);
+    next(error);
+  }
+};

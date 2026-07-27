@@ -6,6 +6,7 @@ import {
   cancelOrder,
   getAllOrders,
   updateOrderStatus,
+  getOrderTracking,
 } from '../controllers/orderController.js';
 import { protect, authorize } from '../middleware/authMiddleware.js';
 import {
@@ -22,6 +23,7 @@ router.post('/', createOrderValidator, createOrder);
 router.get('/', getMyOrders);
 router.get('/my-orders', getMyOrders);
 router.get('/admin/all', authorize('admin'), getAllOrders);
+router.get('/:id/tracking', getOrderTracking);
 router.get('/:id', getOrderById);
 router.put('/:id/cancel', cancelOrder);
 router.put('/:id/status', authorize('admin'), updateOrderStatusValidator, updateOrderStatus);
