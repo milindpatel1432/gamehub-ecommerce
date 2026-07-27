@@ -1,9 +1,42 @@
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { categories } from '../../data/categories';
+import { categoryService } from '../../services/categoryService';
+import { categories as fallbackCategories } from '../../data/categories';
 
 export default function FeaturedCategories() {
   const navigate = useNavigate();
+  const [categoryList, setCategoryList] = useState([]);
+
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const res = await categoryService.getAllCategories();
+        if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+          const mapped = res.data.map((cat, index) => {
+            const fallback = fallbackCategories.find((c) => c.name.toLowerCase() === cat.name.toLowerCase()) || fallbackCategories[index % fallbackCategories.length];
+            return {
+              id: cat.id || cat._id,
+              name: cat.name,
+              subtitle: cat.description || fallback?.subtitle || 'Gaming Hardware',
+              image: cat.image || fallback?.image || 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=600&auto=format&fit=crop&q=80',
+              badge: fallback?.badge || 'Gear',
+              borderGlow: fallback?.borderGlow || 'hover:shadow-[0_0_20px_rgba(0,229,255,0.3)] hover:border-gaming-cyan/40',
+            };
+          });
+          setCategoryList(mapped);
+        } else {
+          setCategoryList(fallbackCategories);
+        }
+      } catch (err) {
+        console.error('Failed to load categories from database:', err);
+        setCategoryList(fallbackCategories);
+      }
+    };
+    loadCategories();
+  }, []);
+
+  const displayList = categoryList.length > 0 ? categoryList : fallbackCategories;
 
   return (
     <section className="bg-gaming-dark py-20 px-4 sm:px-6 lg:px-8 border-b border-gaming-border">
@@ -19,13 +52,13 @@ export default function FeaturedCategories() {
 
         {/* Categories Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
-          {categories.map((cat, index) => (
+          {displayList.map((cat, index) => (
             <motion.div
-              key={cat.name}
+              key={cat.id || cat.name}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
+              transition={{ duration: 0.5, delay: index * 0.05 }}
               onClick={() => navigate('/shop')}
               className={`group relative h-72 rounded-2xl border border-gaming-border bg-gaming-card overflow-hidden cursor-pointer transition-all duration-300 ${cat.borderGlow}`}
             >
@@ -46,10 +79,10 @@ export default function FeaturedCategories() {
 
               {/* Content */}
               <div className="absolute bottom-6 left-6 right-6 z-20 text-left space-y-1">
-                <h3 className="font-gaming text-lg font-bold text-white group-hover:text-gaming-cyan transition-colors">
+                <h3 className="font-gaming text-lg font-bold text-white group-hover:text-gaming-cyan transition-colors line-clamp-1">
                   {cat.name}
                 </h3>
-                <p className="text-xs text-slate-400 font-medium">
+                <p className="text-xs text-slate-400 font-medium line-clamp-2">
                   {cat.subtitle}
                 </p>
               </div>

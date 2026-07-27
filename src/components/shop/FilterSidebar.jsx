@@ -1,20 +1,42 @@
-import { useState } from 'react';
-import { SlidersHorizontal, ChevronDown, ChevronUp } from 'lucide-react';
-import { categories } from '../../data/categories';
+import { useState, useEffect } from 'react';
+import { SlidersHorizontal } from 'lucide-react';
+import { categoryService } from '../../services/categoryService';
+import { categories as fallbackCategories } from '../../data/categories';
 
 export default function FilterSidebar({ onFilterChange }) {
   const [selectedPlatforms, setSelectedPlatforms] = useState([]);
   const [selectedTypes, setSelectedTypes] = useState([]);
   const [selectedTransactions, setSelectedTransactions] = useState([]);
   const [selectedCategories, setSelectedCategories] = useState([]);
+  const [categoryList, setCategoryList] = useState([]);
+
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const res = await categoryService.getAllCategories();
+        if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+          setCategoryList(res.data);
+        } else {
+          setCategoryList(fallbackCategories);
+        }
+      } catch (err) {
+        console.error('Failed to load categories in sidebar:', err);
+        setCategoryList(fallbackCategories);
+      }
+    };
+    loadCategories();
+  }, []);
+
+  const displayCategories = categoryList.length > 0 ? categoryList : fallbackCategories;
 
   const platforms = [
     { id: 'ps5', label: 'PS5' },
     { id: 'ps4', label: 'PS4' },
     { id: 'xbox', label: 'Xbox Series X/S' },
+    { id: 'pc', label: 'PC' },
   ];
 
-  const productTypes = ['Games', 'Consoles'];
+  const productTypes = ['Games', 'Consoles', 'Accessories'];
   const transactionTypes = ['Buy', 'Rent'];
 
   const handlePlatformChange = (id) => {
@@ -180,28 +202,31 @@ export default function FilterSidebar({ onFilterChange }) {
         </div>
       </div>
 
-      {/* Category Filter from categories.js */}
+      {/* Category Filter from MongoDB API */}
       <div className="space-y-4">
         <h4 className="font-gaming text-xs font-bold text-white uppercase tracking-wider">
           Category
         </h4>
-        <div className="space-y-3">
-          {categories.map((cat) => (
-            <label
-              key={cat.name}
-              className="flex items-center gap-3 text-sm text-slate-300 cursor-pointer group"
-            >
-              <input
-                type="checkbox"
-                checked={selectedCategories.includes(cat.name)}
-                onChange={() => handleCategoryChange(cat.name)}
-                className="h-4.5 w-4.5 rounded border-gaming-border bg-gaming-black text-gaming-cyan focus:ring-0 focus:ring-offset-0 transition-colors cursor-pointer"
-              />
-              <span className="group-hover:text-gaming-cyan transition-colors">
-                {cat.name}
-              </span>
-            </label>
-          ))}
+        <div className="space-y-3 max-h-64 overflow-y-auto pr-1">
+          {displayCategories.map((cat) => {
+            const catName = cat.name || cat;
+            return (
+              <label
+                key={cat._id || cat.id || catName}
+                className="flex items-center gap-3 text-sm text-slate-300 cursor-pointer group"
+              >
+                <input
+                  type="checkbox"
+                  checked={selectedCategories.includes(catName)}
+                  onChange={() => handleCategoryChange(catName)}
+                  className="h-4.5 w-4.5 rounded border-gaming-border bg-gaming-black text-gaming-cyan focus:ring-0 focus:ring-offset-0 transition-colors cursor-pointer"
+                />
+                <span className="group-hover:text-gaming-cyan transition-colors line-clamp-1">
+                  {catName}
+                </span>
+              </label>
+            );
+          })}
         </div>
       </div>
 
