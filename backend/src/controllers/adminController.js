@@ -90,11 +90,23 @@ export const getStats = async (req, res, next) => {
 };
 
 // ==========================================
-// 2. Product Management (Games & Consoles)
+// 2. Product Management (Admin All, Games & Consoles)
 // ==========================================
+export const getAllProductsAdmin = async (req, res, next) => {
+  try {
+    const products = await Product.find({}).sort({ createdAt: -1 });
+    res.status(200).json({
+      success: true,
+      data: products
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const getGames = async (req, res, next) => {
   try {
-    const games = await Product.find({ category: 'Games' }).sort({ createdAt: -1 });
+    const games = await Product.find({ category: { $regex: /game/i } }).sort({ createdAt: -1 });
     res.status(200).json({
       success: true,
       data: games
@@ -166,7 +178,7 @@ export const deleteGame = async (req, res, next) => {
 // Consoles
 export const getConsoles = async (req, res, next) => {
   try {
-    const consoles = await Product.find({ category: 'Consoles' }).sort({ createdAt: -1 });
+    const consoles = await Product.find({ category: { $regex: /console/i } }).sort({ createdAt: -1 });
     res.status(200).json({
       success: true,
       data: consoles

@@ -7,6 +7,11 @@ export const adminService = {
     return response.data;
   },
 
+  getAllProducts: async () => {
+    const response = await axiosInstance.get(API_ENDPOINTS.ADMIN.PRODUCTS || '/admin/products');
+    return response.data;
+  },
+
   getGames: async () => {
     const response = await axiosInstance.get(API_ENDPOINTS.ADMIN.GAMES);
     return response.data;

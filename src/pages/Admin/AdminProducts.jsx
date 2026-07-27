@@ -11,12 +11,14 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { productService } from '../../services/productService';
+import { categoryService } from '../../services/categoryService';
 import ImageUploader from '../../components/ui/ImageUploader';
 import Pagination from '../../components/shop/Pagination';
 import { successToast, errorToast } from '../../utils/toast';
 
 export default function AdminProducts() {
   const [allProducts, setAllProducts] = useState([]);
+  const [categoriesList, setCategoriesList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -44,7 +46,7 @@ export default function AdminProducts() {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    category: 'Games',
+    category: 'Gaming Consoles',
     platform: 'PS5',
     brand: 'GameHub',
     condition: 'New',
@@ -62,15 +64,23 @@ export default function AdminProducts() {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await productService.getAllProductsAdmin();
-      if (res.success) {
-        setAllProducts(res.data || []);
+      const [prodRes, catRes] = await Promise.all([
+        productService.getAllProductsAdmin(),
+        categoryService.getAllCategories()
+      ]);
+
+      if (prodRes.success) {
+        setAllProducts(prodRes.data || []);
       } else {
-        setError('Failed to fetch admin product list.');
+        setError(prodRes.error || 'Failed to fetch admin product list.');
+      }
+
+      if (catRes.success && Array.isArray(catRes.data)) {
+        setCategoriesList(catRes.data);
       }
     } catch (err) {
       console.error(err);
-      setError('An error occurred while loading catalog.');
+      setError(err.message || 'An error occurred while loading catalog.');
     } finally {
       setIsLoading(false);
     }
@@ -351,10 +361,11 @@ export default function AdminProducts() {
             className="h-10 px-3.5 rounded-xl bg-gaming-black/40 border border-gaming-border text-xs text-slate-300 focus:outline-none cursor-pointer"
           >
             <option value="">All Categories</option>
-            <option value="Games">Games</option>
-            <option value="Consoles">Consoles</option>
-            <option value="Hardware">Hardware</option>
-            <option value="Accessories">Accessories</option>
+            {categoriesList.map((cat) => (
+              <option key={cat.id || cat._id || cat.name} value={cat.name}>
+                {cat.name}
+              </option>
+            ))}
           </select>
 
           {/* Platform Select */}

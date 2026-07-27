@@ -44,6 +44,7 @@ export const API_ENDPOINTS = {
   },
   ADMIN: {
     STATS: '/admin/stats',
+    PRODUCTS: '/admin/products',
     GAMES: '/admin/games',
     CONSOLES: '/admin/consoles',
     ORDERS: '/admin/orders',

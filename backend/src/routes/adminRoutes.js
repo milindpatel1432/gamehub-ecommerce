@@ -2,6 +2,7 @@ import express from 'express';
 import { protect, authorize } from '../middleware/authMiddleware.js';
 import {
   getStats,
+  getAllProductsAdmin,
   getGames,
   addGame,
   updateGame,
@@ -32,6 +33,9 @@ router.use(authorize('admin'));
 // Stats & Analytics
 router.get('/stats', getStats);
 router.get('/analytics', getAnalytics);
+
+// Product Catalog Management
+router.get('/products', getAllProductsAdmin);
 
 // Games Catalog Management
 router.get('/games', getGames);

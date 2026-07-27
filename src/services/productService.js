@@ -246,17 +246,19 @@ export const productService = {
 
   getAllProductsAdmin: async () => {
     try {
-      const [gamesRes, consolesRes] = await Promise.all([
-        adminService.getGames(),
-        adminService.getConsoles()
-      ]);
-      const games = gamesRes.data || [];
-      const consoles = consolesRes.data || [];
-      const allRaw = [...games, ...consoles];
-      const mapped = allRaw.map(mapProduct).filter(Boolean);
+      let response;
+      try {
+        response = await api.get('/admin/products');
+      } catch (adminErr) {
+        response = await api.get('/products', { params: { limit: 1000 } });
+      }
+
+      const rawProducts = extractProductsArray(response);
+      const products = rawProducts.map(mapProduct).filter(Boolean);
+
       return {
         success: true,
-        data: mapped
+        data: products
       };
     } catch (err) {
       console.error('Error fetching admin products:', err);
