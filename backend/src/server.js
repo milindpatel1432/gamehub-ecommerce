@@ -3,7 +3,7 @@ import app from './app.js';
 import connectDB from './database/db.js';
 
 console.log("MONGODB_URI =", process.env.MONGODB_URI);
-// Connect to MongoDB
+// Connect to MongoDB & initialize seeds
 connectDB();
 
 const PORT = process.env.PORT || 5000;

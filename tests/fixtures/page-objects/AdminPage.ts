@@ -11,7 +11,7 @@ export class AdminPage {
 
   constructor(page: Page) {
     this.page = page;
-    this.adminHeader = page.locator('h2:has-text("Admin"), h2:has-text("GameHub Admin Console")');
+    this.adminHeader = page.locator('h2:has-text("Admin"), h2:has-text("GameHub Admin Console"), h2:has-text("Operations")');
     this.productsLink = page.locator('a[href="/admin/products"]');
     this.categoriesLink = page.locator('a[href="/admin/categories"]');
     this.ordersLink = page.locator('a[href="/admin/orders"]');
@@ -23,6 +23,7 @@ export class AdminPage {
     await this.page.addInitScript(() => sessionStorage.setItem('gamehub_preloader_seen', 'true'));
     await this.page.goto('/admin');
     await this.page.waitForLoadState('networkidle').catch(() => {});
+    await this.adminHeader.first().waitFor({ state: 'visible', timeout: 10000 }).catch(() => {});
   }
 
   async navigateTab(tabName: 'products' | 'categories' | 'orders' | 'users') {

@@ -39,7 +39,10 @@ export const seedAdmin = async () => {
       superAdmin.fullName = adminPayload.fullName;
       superAdmin.username = adminPayload.username;
       superAdmin.email = adminPayload.email;
-      superAdmin.password = adminPayload.password; // Triggers bcrypt pre-save hook
+      const isPasswordValid = await superAdmin.comparePassword(adminPayload.password);
+      if (!isPasswordValid) {
+        superAdmin.password = adminPayload.password; // Triggers bcrypt pre-save hook only if password changed
+      }
       superAdmin.role = 'admin';
       superAdmin.isVerified = true;
       superAdmin.isBlocked = false;

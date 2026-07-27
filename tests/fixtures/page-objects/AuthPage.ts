@@ -13,27 +13,23 @@ export class AuthPage {
 
   constructor(page: Page) {
     this.page = page;
-    this.emailInput = page.locator('#email');
-    this.passwordInput = page.locator('#password');
-    this.submitButton = page.locator('button[type="submit"]');
-    this.fullNameInput = page.locator('#fullName');
-    this.usernameInput = page.locator('#username');
-    this.phoneInput = page.locator('#phone');
-    this.confirmPasswordInput = page.locator('#confirmPassword');
-    this.serverErrorAlert = page.locator('.bg-red-500\\/10, [id*="-error"]');
+    this.emailInput = page.locator('input#email, input[name="email"]').first();
+    this.passwordInput = page.locator('input#password, input[name="password"]').first();
+    this.submitButton = page.locator('button[type="submit"]').first();
+    this.fullNameInput = page.locator('input#fullName, input[name="fullName"]').first();
+    this.usernameInput = page.locator('input#username, input[name="username"]').first();
+    this.phoneInput = page.locator('input#phone, input[name="phone"]').first();
+    this.confirmPasswordInput = page.locator('input#confirmPassword, input[name="confirmPassword"]').first();
+    this.serverErrorAlert = page.locator('.bg-red-500\\/10, [id*="-error"]').first();
   }
 
   async gotoLogin() {
-    await this.page.addInitScript(() => sessionStorage.setItem('gamehub_preloader_seen', 'true'));
     await this.page.goto('/login');
-    await this.page.waitForLoadState('networkidle').catch(() => {});
     await expect(this.emailInput).toBeVisible();
   }
 
   async gotoRegister() {
-    await this.page.addInitScript(() => sessionStorage.setItem('gamehub_preloader_seen', 'true'));
     await this.page.goto('/register');
-    await this.page.waitForLoadState('networkidle').catch(() => {});
     await expect(this.fullNameInput).toBeVisible();
   }
 
@@ -41,6 +37,27 @@ export class AuthPage {
     await this.emailInput.fill(email);
     await this.passwordInput.fill(pass);
     await this.submitButton.click();
+    await this.page.waitForTimeout(500);
+  }
+
+  async loginViaApi(email = 'admin@gamehub.com', pass = 'milind@2803') {
+    try {
+      const response = await this.page.request.post('http://localhost:5000/api/v1/auth/login', {
+        data: { email, password: pass },
+      });
+      const data = await response.json();
+      if (data?.token) {
+        await this.page.addInitScript(({ token, user }) => {
+          sessionStorage.setItem('gamehub_preloader_seen', 'true');
+          localStorage.setItem('gamehub_token', token);
+          localStorage.setItem('gamehub_user', JSON.stringify(user));
+        }, { token: data.token, user: data.user });
+      }
+      return data;
+    } catch (e) {
+      console.error('loginViaApi error:', e);
+      return null;
+    }
   }
 
   async registerUser(details: { fullName: string; username: string; email: string; password: string; phone?: string }) {
@@ -55,5 +72,6 @@ export class AuthPage {
       await this.confirmPasswordInput.fill(details.password);
     }
     await this.submitButton.click();
+    await this.page.waitForTimeout(500);
   }
 }
