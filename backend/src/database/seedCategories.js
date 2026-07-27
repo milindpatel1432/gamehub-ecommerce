@@ -15,13 +15,6 @@ export const seedCategories = async () => {
         isActive: true,
       },
       {
-        name: 'Games',
-        slug: 'games',
-        description: 'Top-tier AAA blockbusters, indie gems, and digital game downloads.',
-        image: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=600&auto=format&fit=crop&q=80',
-        isActive: true,
-      },
-      {
         name: 'Gaming Accessories',
         slug: 'gaming-accessories',
         description: 'Pro controllers, surround headsets, mechanical keyboards, and precision mice.',
@@ -57,6 +50,13 @@ export const seedCategories = async () => {
         isActive: true,
       },
       {
+        name: 'Power Supplies',
+        slug: 'power-supplies',
+        description: '80 Plus Gold & Platinum modular ATX 3.0 power supplies for gaming rigs.',
+        image: 'https://images.unsplash.com/photo-1555680202-c86f0e12f086?w=600&auto=format&fit=crop&q=80',
+        isActive: true,
+      },
+      {
         name: 'RAM',
         slug: 'ram',
         description: 'High-speed DDR5 & DDR4 RGB desktop gaming memory modules.',
@@ -71,20 +71,6 @@ export const seedCategories = async () => {
         isActive: true,
       },
       {
-        name: 'Cabinets',
-        slug: 'cabinets',
-        description: 'Premium PC cases, dual-chamber glass cabinets, and airflow mesh towers.',
-        image: 'https://images.unsplash.com/photo-1587202372634-32705e3bf49c?w=600&auto=format&fit=crop&q=80',
-        isActive: true,
-      },
-      {
-        name: 'Power Supplies',
-        slug: 'power-supplies',
-        description: '80 Plus Gold & Platinum modular ATX 3.0 power supplies for gaming rigs.',
-        image: 'https://images.unsplash.com/photo-1555680202-c86f0e12f086?w=600&auto=format&fit=crop&q=80',
-        isActive: true,
-      },
-      {
         name: 'Streaming Equipment',
         slug: 'streaming-equipment',
         description: 'Stream decks, studio condenser microphones, 4K webcams, and capture cards.',
@@ -94,7 +80,7 @@ export const seedCategories = async () => {
     ];
 
     await Category.insertMany(categoriesData);
-    console.log('[Database] 12 GameHub Categories seeded successfully.');
+    console.log(`[Database] ${categoriesData.length} GameHub Categories seeded successfully.`);
   } catch (err) {
     console.error('Error seeding categories:', err);
   }
