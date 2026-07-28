@@ -6,8 +6,8 @@ test.describe('User Profile & Dashboard E2E Tests', () => {
   test.beforeEach(async ({ page }) => {
     await page.addInitScript(() => sessionStorage.setItem('gamehub_preloader_seen', 'true'));
     const authPage = new AuthPage(page);
-    await authPage.gotoLogin();
-    await authPage.login(TEST_USERS.admin.email, TEST_USERS.admin.password);
+    await authPage.loginViaApi(TEST_USERS.admin.email, TEST_USERS.admin.password);
+    await page.goto('/dashboard');
   });
 
   test('User can view Dashboard overview and stats', async ({ page }) => {

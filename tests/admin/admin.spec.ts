@@ -6,9 +6,8 @@ test.describe('Admin Portal E2E Tests', () => {
   test.beforeEach(async ({ page }) => {
     await page.addInitScript(() => sessionStorage.setItem('gamehub_preloader_seen', 'true'));
     const authPage = new AuthPage(page);
-    await authPage.gotoLogin();
-    await authPage.login(TEST_USERS.admin.email, TEST_USERS.admin.password);
-    await page.waitForURL(/\/(admin|dashboard)/, { timeout: 10000 }).catch(() => {});
+    await authPage.loginViaApi(TEST_USERS.admin.email, TEST_USERS.admin.password);
+    await page.goto('/admin');
   });
 
   test('Super Admin can access Admin Dashboard', async ({ page }) => {

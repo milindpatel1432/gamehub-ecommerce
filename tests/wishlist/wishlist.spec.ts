@@ -6,8 +6,8 @@ test.describe('Wishlist E2E Tests', () => {
   test.beforeEach(async ({ page }) => {
     await page.addInitScript(() => sessionStorage.setItem('gamehub_preloader_seen', 'true'));
     const authPage = new AuthPage(page);
-    await authPage.gotoLogin();
-    await authPage.login(TEST_USERS.admin.email, TEST_USERS.admin.password);
+    await authPage.loginViaApi(TEST_USERS.admin.email, TEST_USERS.admin.password);
+    await page.goto('/wishlist');
   });
 
   test('User can view Wishlist page', async ({ page }) => {
