@@ -62,10 +62,18 @@ export default defineConfig({
   ],
 
   /* Run local dev server automatically if not running */
-  webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:5173',
-    reuseExistingServer: true,
-    timeout: 120 * 1000,
-  },
+  webServer: [
+    {
+      command: 'npm --prefix backend start',
+      url: 'http://127.0.0.1:5000/api/v1',
+      reuseExistingServer: true,
+      timeout: 120 * 1000,
+    },
+    {
+      command: 'npm run dev',
+      url: 'http://localhost:5173',
+      reuseExistingServer: true,
+      timeout: 120 * 1000,
+    },
+  ],
 });

@@ -1,6 +1,6 @@
 import express from 'express';
 import { submitEnquiry, getAllEnquiries } from '../controllers/enquiryController.js';
-import { protect, adminOnly } from '../middleware/authMiddleware.js';
+import { protect, authorize } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
@@ -8,6 +8,6 @@ const router = express.Router();
 router.post('/', submitEnquiry);
 
 // Protected Admin route to list all enquiries
-router.get('/', protect, adminOnly, getAllEnquiries);
+router.get('/', protect, authorize('admin'), getAllEnquiries);
 
 export default router;
