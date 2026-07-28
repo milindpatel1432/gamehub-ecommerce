@@ -52,19 +52,31 @@ export function AuthProvider({ children }) {
       const response = await api.get('/auth/profile');
       if (response.data?.success && response.data?.user) {
         setUser(response.data.user);
+        localStorage.setItem(LOCAL_STORAGE_KEYS.USER_DATA, JSON.stringify(response.data.user));
+        setLoading(false);
         return { success: true, user: response.data.user };
       }
-      setUser(null);
-      return { success: false, error: 'User profile not found' };
     } catch (error) {
-      setUser(null);
-      return {
-        success: false,
-        error: error.response?.data?.message || 'Failed to fetch user profile',
-      };
-    } finally {
-      setLoading(false);
+      console.warn('[AuthContext] Profile fetch warning:', error?.message || error);
     }
+
+    // Fallback: check cached user in localStorage if auth token is present
+    const token = localStorage.getItem(LOCAL_STORAGE_KEYS.AUTH_TOKEN);
+    const cachedUserStr = localStorage.getItem(LOCAL_STORAGE_KEYS.USER_DATA);
+    if (token && cachedUserStr) {
+      try {
+        const cachedUser = JSON.parse(cachedUserStr);
+        if (cachedUser) {
+          setUser(cachedUser);
+          setLoading(false);
+          return { success: true, user: cachedUser };
+        }
+      } catch (_e) {}
+    }
+
+    setUser(null);
+    setLoading(false);
+    return { success: false, error: 'User profile not found' };
   };
 
   // Run checkAuth once when application starts
