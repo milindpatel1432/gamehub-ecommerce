@@ -8,6 +8,7 @@ import adminRoutes from './adminRoutes.js';
 import reviewRoutes from './reviewRoutes.js';
 import uploadRoutes from './uploadRoutes.js';
 import categoryRoutes from './categoryRoutes.js';
+import enquiryRoutes from './enquiryRoutes.js';
 
 export {
   authRoutes,
@@ -19,5 +20,6 @@ export {
   adminRoutes,
   reviewRoutes,
   uploadRoutes,
-  categoryRoutes
+  categoryRoutes,
+  enquiryRoutes,
 };

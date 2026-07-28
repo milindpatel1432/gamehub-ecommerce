@@ -138,14 +138,6 @@ export default function FeaturedCategories() {
                 {tab.label}
               </button>
             ))}
-
-            <button
-              onClick={() => navigate('/shop')}
-              className="ml-auto md:ml-2 px-4 py-2 rounded-xl border border-gaming-cyan/40 bg-gaming-cyan/10 hover:bg-gaming-cyan text-gaming-cyan hover:text-gaming-black text-xs font-bold transition-all duration-300 flex items-center gap-1.5 cursor-pointer shadow-[0_0_12px_rgba(0,229,255,0.15)] group"
-            >
-              <span>Browse Shop</span>
-              <ArrowRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-1" />
-            </button>
           </div>
         </div>
 

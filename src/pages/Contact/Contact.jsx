@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { supportChannels, inquiryTypes, officeLocations, contactFAQs } from '../../data/contactData';
 import { successToast, errorToast } from '../../utils/toast';
+import { enquiryService } from '../../services/enquiryService';
 
 export default function Contact() {
   const [formData, setFormData] = useState({
@@ -20,7 +21,7 @@ export default function Contact() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [expandedFAQ, setExpandedFAQ] = useState(0);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.name.trim() || !formData.email.trim() || !formData.message.trim()) {
       errorToast('Please fill out all required fields.');
@@ -28,9 +29,18 @@ export default function Contact() {
     }
 
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
-      successToast('Thank you! Your message has been sent successfully. Our team will get back to you shortly.');
+    try {
+      await enquiryService.submitEnquiry({
+        formName: 'Contact Form',
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        phone: formData.phone.trim(),
+        subject: formData.subject ? formData.subject.trim() : `Inquiry: ${formData.inquiryType}`,
+        message: formData.message.trim(),
+        pageUrl: window.location.href,
+      });
+
+      successToast('Your message has been sent successfully. Our team will get back to you shortly.');
       setFormData({
         name: '',
         email: '',
@@ -39,7 +49,12 @@ export default function Contact() {
         subject: '',
         message: ''
       });
-    }, 1200);
+    } catch (err) {
+      console.error('Contact form error:', err);
+      errorToast(typeof err === 'string' ? err : 'Failed to send message. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (

@@ -1,3 +1,5 @@
+import ssdImg from '../assets/images/gaming_ssd.png';
+
 export const categories = [
   {
     name: 'Gaming Consoles',
@@ -58,7 +60,7 @@ export const categories = [
   {
     name: 'SSD',
     subtitle: 'Gen4 & Gen5 NVMe',
-    image: 'https://images.unsplash.com/photo-1597872250970-45600a12e8b0?w=600&auto=format&fit=crop&q=80',
+    image: ssdImg,
     badge: 'Storage',
     borderGlow: 'hover:shadow-[0_0_20px_rgba(236,72,153,0.3)] hover:border-pink-500/40',
   },

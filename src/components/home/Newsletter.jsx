@@ -1,16 +1,37 @@
 import { useState } from 'react';
 import { Send, CheckCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { enquiryService } from '../../services/enquiryService';
+import { successToast, errorToast } from '../../utils/toast';
 
 export default function Newsletter() {
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (email.trim()) {
+    if (!email.trim()) return;
+
+    setIsSubmitting(true);
+    try {
+      await enquiryService.submitEnquiry({
+        formName: 'Newsletter Subscription',
+        name: email.split('@')[0] || 'Gamer Subscriber',
+        email: email.trim(),
+        subject: 'Newsletter Subscription Request',
+        message: 'Subscribed to GameHub newsletter updates & exclusive deals.',
+        pageUrl: window.location.href,
+      });
+
       setSubscribed(true);
       setEmail('');
+      successToast('Subscribed successfully! Welcome to the elite rank.');
+    } catch (err) {
+      console.error('Newsletter error:', err);
+      errorToast(typeof err === 'string' ? err : 'Failed to subscribe. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 

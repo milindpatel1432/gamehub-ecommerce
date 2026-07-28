@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Briefcase, Sparkles, MapPin, Clock, ArrowRight, CheckCircle2, Zap, Users, X, Send } from 'lucide-react';
-import { successToast } from '../../utils/toast';
+import { successToast, errorToast } from '../../utils/toast';
+import { enquiryService } from '../../services/enquiryService';
 
 const OPEN_ROLES = [
   {
@@ -53,17 +54,35 @@ export default function Careers() {
   const [resumeUrl, setResumeUrl] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleApply = (e) => {
+  const handleApply = async (e) => {
     e.preventDefault();
+    if (!applicantName.trim() || !applicantEmail.trim()) {
+      errorToast('Please enter your name and email address.');
+      return;
+    }
+
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
-      successToast(`Application submitted for ${selectedRole.title}! Our talent team will contact you.`);
+    try {
+      await enquiryService.submitEnquiry({
+        formName: 'Career / Job Application Form',
+        name: applicantName.trim(),
+        email: applicantEmail.trim(),
+        subject: `Job Application: ${selectedRole?.title || 'Open Position'}`,
+        message: `Applied for: ${selectedRole?.title} (${selectedRole?.department}).\nResume/Portfolio URL: ${resumeUrl.trim() || 'Not provided'}`,
+        pageUrl: window.location.href,
+      });
+
+      successToast(`Application submitted for ${selectedRole?.title}! Our talent team will contact you.`);
       setSelectedRole(null);
       setApplicantName('');
       setApplicantEmail('');
       setResumeUrl('');
-    }, 1000);
+    } catch (err) {
+      console.error('Job application submission error:', err);
+      errorToast(typeof err === 'string' ? err : 'Failed to submit application. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
