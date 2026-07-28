@@ -66,6 +66,7 @@ app.use('/api/v1/reviews', reviewRoutes);
 app.use('/api/v1/upload', uploadRoutes);
 app.use('/api/v1/categories', categoryRoutes);
 app.use('/api/v1/enquiry', enquiryRoutes);
+app.use('/api/v1/contact', enquiryRoutes);
 
 // Base API Route
 app.get('/api/v1', (req, res) => {
