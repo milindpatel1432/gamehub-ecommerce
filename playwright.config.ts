@@ -11,8 +11,8 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   /* Retry configuration: 2 on CI, 1 in local development for stability */
   retries: process.env.CI ? 2 : 1,
-  /* Opt out of parallel tests on CI if needed */
-  workers: process.env.CI ? 1 : undefined,
+  /* Limit parallel workers locally for CPU & memory stability */
+  workers: process.env.CI ? 1 : 2,
   /* Reporter to use. Includes both HTML reporter and list logger */
   reporter: [
     ['html', { open: 'never' }],
