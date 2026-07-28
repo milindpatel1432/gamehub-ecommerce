@@ -202,15 +202,11 @@ export const updateProduct = async (req, res, next) => {
 };
 
 // ==========================================
-// Delete Product (Soft Delete)
+// Delete Product (Permanent Delete from Database)
 // ==========================================
 export const deleteProduct = async (req, res, next) => {
   try {
-    const product = await Product.findByIdAndUpdate(
-      req.params.id,
-      { isActive: false },
-      { new: true }
-    );
+    const product = await Product.findByIdAndDelete(req.params.id);
     if (!product) {
       return res.status(404).json({
         success: false,
@@ -219,7 +215,7 @@ export const deleteProduct = async (req, res, next) => {
     }
     res.status(200).json({
       success: true,
-      message: 'Product deleted successfully (soft delete)',
+      message: 'Product permanently deleted from database',
       data: product,
     });
   } catch (error) {

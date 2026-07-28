@@ -244,11 +244,14 @@ export default function AdminProducts() {
 
   // Delete Product Submit
   const handleDeleteSubmit = async () => {
+    if (!targetProduct) return;
+    const productId = targetProduct.id || targetProduct._id;
     setIsSubmitting(true);
     try {
-      const res = await productService.deleteProduct(targetProduct.id);
+      const res = await productService.deleteProduct(productId);
       if (res.success) {
-        successToast('Product deleted successfully (soft delete).');
+        successToast('Product permanently deleted from database!');
+        setAllProducts((prev) => prev.filter((p) => String(p.id || p._id) !== String(productId)));
         fetchProducts();
         setShowDeleteModal(false);
       } else {

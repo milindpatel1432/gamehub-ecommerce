@@ -230,10 +230,15 @@ export const productService = {
 
   deleteProduct: async (id) => {
     try {
-      const response = await api.delete(`/products/${id}`);
+      let response;
+      try {
+        response = await api.delete(`/admin/products/${id}`);
+      } catch (_adminErr) {
+        response = await api.delete(`/products/${id}`);
+      }
       return {
-        success: response.data?.success ?? false,
-        message: response.data?.message
+        success: response.data?.success ?? true,
+        message: response.data?.message || 'Product deleted successfully'
       };
     } catch (err) {
       console.error('Error deleting product:', err);

@@ -24,6 +24,8 @@ import {
   updateProductValidator
 } from '../validations/productValidation.js';
 
+import { deleteProduct } from '../controllers/productController.js';
+
 const router = express.Router();
 
 // Apply protect & authorize('admin') to all admin endpoints
@@ -36,6 +38,7 @@ router.get('/analytics', getAnalytics);
 
 // Product Catalog Management
 router.get('/products', getAllProductsAdmin);
+router.delete('/products/:id', deleteProduct);
 
 // Games Catalog Management
 router.get('/games', getGames);
