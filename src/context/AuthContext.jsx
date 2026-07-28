@@ -10,6 +10,7 @@ export function AuthProvider({ children }) {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalTab, setAuthModalTab] = useState('login'); // 'login' | 'register'
   const [authRedirectUrl, setAuthRedirectUrl] = useState(null);
+  const [pendingAction, setPendingAction] = useState(null);
 
   const openAuthModal = (tab = 'login', redirectUrl = null) => {
     setAuthModalTab(tab);
@@ -30,6 +31,17 @@ export function AuthProvider({ children }) {
 
   const clearAuthRedirectUrl = () => {
     setAuthRedirectUrl(null);
+  };
+
+  const clearPendingAction = () => {
+    setPendingAction(null);
+  };
+
+  const setIntentAndOpenAuth = (intent) => {
+    // intent: { action: 'ADD_TO_CART' | 'ADD_TO_WISHLIST' | 'BUY_NOW' | 'CHECKOUT', payload: {...}, redirectTo: '...' }
+    setPendingAction(intent);
+    const targetUrl = intent?.redirectTo || (typeof window !== 'undefined' ? window.location.pathname + window.location.search + window.location.hash : null);
+    openAuthModal('login', targetUrl);
   };
 
   // ==========================
@@ -159,6 +171,10 @@ export function AuthProvider({ children }) {
         authRedirectUrl,
         setAuthRedirectUrl,
         clearAuthRedirectUrl,
+        pendingAction,
+        setPendingAction,
+        clearPendingAction,
+        setIntentAndOpenAuth,
       }}
     >
       {children}

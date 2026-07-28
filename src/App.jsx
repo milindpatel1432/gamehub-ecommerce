@@ -3,6 +3,7 @@ import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
 import AppRoutes from './routes/AppRoutes';
 import AuthModal from './components/auth/AuthModal';
+import IntentExecutor from './components/auth/IntentExecutor';
 import Preloader from './components/ui/Preloader';
 import { WishlistProvider } from './context/WishlistContext';
 import { CartProvider } from './context/CartContext';
@@ -34,8 +35,9 @@ function AppContent() {
           duration: 3000,
         }}
       />
-      {/* Global Auth Popup Modal */}
+      {/* Global Auth Popup Modal & Post-Auth Intent Executor */}
       <AuthModal />
+      <IntentExecutor />
 
       {/* Render Navbar only when not on admin or dashboard routes */}
       {!hideLayout && <Navbar />}

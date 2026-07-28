@@ -13,7 +13,7 @@ export default function Navbar() {
   const location = useLocation();
   const { wishlistItems } = useWishlist();
   const { getCartItemCount } = useCart();
-  const { isAuthenticated, user, logout, openAuthModal } = useAuth();
+  const { isAuthenticated, user, logout, openAuthModal, setIntentAndOpenAuth } = useAuth();
 
   const [isOpen, setIsOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -24,9 +24,12 @@ export default function Navbar() {
   // Scroll listener to activate sticky background color on scroll
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
+      if (window.scrollY > 20) {
+        setScrolled(true);
+      } else {
+        setScrolled(false);
+      }
     };
-    handleScroll();
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
@@ -40,14 +43,14 @@ export default function Navbar() {
   const handleWishlistClick = (e) => {
     if (!isAuthenticated) {
       e.preventDefault();
-      openAuthModal('login', '/wishlist');
+      setIntentAndOpenAuth({ action: 'NAVIGATE', redirectTo: '/wishlist' });
     }
   };
 
   const handleCartClick = (e) => {
     if (!isAuthenticated) {
       e.preventDefault();
-      openAuthModal('login', '/cart');
+      setIntentAndOpenAuth({ action: 'NAVIGATE', redirectTo: '/cart' });
     }
   };
 

@@ -34,11 +34,22 @@ export default function Consoles() {
   const navigate = useNavigate();
   const { addToCart } = useCart();
   const { isWishlisted, addToWishlist: addToWishlistContext, removeFromWishlist } = useWishlist();
-  const { isAuthenticated, openAuthModal } = useAuth();
+  const { isAuthenticated, openAuthModal, setIntentAndOpenAuth } = useAuth();
 
   const handleToggleWishlist = (product) => {
     if (!isAuthenticated) {
-      openAuthModal('login');
+      setIntentAndOpenAuth({
+        action: 'ADD_TO_WISHLIST',
+        payload: {
+          product: {
+            id: product.id,
+            title: product.name,
+            price: product.discountedPrice,
+            image: product.image,
+          },
+        },
+        redirectTo: window.location.pathname + window.location.search + window.location.hash,
+      });
       return;
     }
     if (isWishlisted(product.id)) {
@@ -195,11 +206,7 @@ export default function Consoles() {
   }, [filteredProducts, currentPage, itemsPerPage]);
 
   const handleAddToCart = (product) => {
-    if (!isAuthenticated) {
-      openAuthModal('login');
-      return;
-    }
-    addToCart({
+    const itemPayload = {
       _id: product.id,
       id: product.id,
       title: product.name,
@@ -207,7 +214,16 @@ export default function Consoles() {
       price: product.discountedPrice,
       image: product.image,
       stock: product.inStock ? 10 : 0,
-    }, 1);
+    };
+    if (!isAuthenticated) {
+      setIntentAndOpenAuth({
+        action: 'ADD_TO_CART',
+        payload: { product: itemPayload, quantity: 1 },
+        redirectTo: window.location.pathname + window.location.search + window.location.hash,
+      });
+      return;
+    }
+    addToCart(itemPayload, 1);
   };
 
   const handleToggleCompare = (product) => {

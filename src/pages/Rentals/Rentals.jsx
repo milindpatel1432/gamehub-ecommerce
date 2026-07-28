@@ -27,7 +27,7 @@ export default function Rentals() {
   const navigate = useNavigate();
   const { addToCart } = useCart();
   const { isWishlisted, addToWishlist: addToWishlistContext, removeFromWishlist } = useWishlist();
-  const { isAuthenticated, openAuthModal } = useAuth();
+  const { isAuthenticated, openAuthModal, setIntentAndOpenAuth } = useAuth();
 
   // State Management
   const [productsList, setProductsList] = useState(rentalProducts);
@@ -163,11 +163,6 @@ export default function Rentals() {
   };
 
   const handleAddToCart = (product, days = selectedDurationDays) => {
-    if (!isAuthenticated) {
-      openAuthModal('login');
-      return;
-    }
-
     const durationLabel = days === 3 ? '3 Days' : days === 7 ? '7 Days' : days === 15 ? '15 Days' : '30 Days';
     const totals = calculateRentalTotal(product, days);
 
@@ -183,12 +178,32 @@ export default function Rentals() {
       inStock: product.inStock
     };
 
+    if (!isAuthenticated) {
+      setIntentAndOpenAuth({
+        action: 'ADD_TO_CART',
+        payload: { product: cartPayload, quantity: 1 },
+        redirectTo: window.location.pathname + window.location.search + window.location.hash,
+      });
+      return;
+    }
+
     addToCart(cartPayload);
   };
 
   const handleToggleWishlist = (product) => {
     if (!isAuthenticated) {
-      openAuthModal('login');
+      setIntentAndOpenAuth({
+        action: 'ADD_TO_WISHLIST',
+        payload: {
+          product: {
+            id: product.id,
+            title: product.name,
+            price: product.perDayPrice,
+            image: product.image,
+          },
+        },
+        redirectTo: window.location.pathname + window.location.search + window.location.hash,
+      });
       return;
     }
     if (isWishlisted(product.id)) {

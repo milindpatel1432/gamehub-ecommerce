@@ -10,7 +10,7 @@ export default function ProductInfoPanel({ product }) {
   const navigate = useNavigate();
   const { isWishlisted, addToWishlist, removeFromWishlist } = useWishlist();
   const { addToCart } = useCart();
-  const { isAuthenticated, openAuthModal } = useAuth();
+  const { isAuthenticated, openAuthModal, setIntentAndOpenAuth } = useAuth();
   
   const productId = product?.id;
   const isWished = isWishlisted(productId);
@@ -20,7 +20,21 @@ export default function ProductInfoPanel({ product }) {
 
   const handleWishlistToggle = () => {
     if (!isAuthenticated) {
-      openAuthModal('login');
+      setIntentAndOpenAuth({
+        action: 'ADD_TO_WISHLIST',
+        payload: {
+          product: {
+            id: product.id,
+            title: product.title,
+            platform: product.platform,
+            buyPrice: product.buyPrice,
+            rentPrice: product.rentPrice,
+            image: product.image,
+            category: product.category,
+          },
+        },
+        redirectTo: window.location.pathname + window.location.search + window.location.hash,
+      });
       return;
     }
     if (isWished) {
@@ -163,11 +177,7 @@ export default function ProductInfoPanel({ product }) {
           {/* Primary CTA */}
           <button
             onClick={() => {
-              if (!isAuthenticated) {
-                openAuthModal('login');
-                return;
-              }
-              addToCart({
+              const cartItemPayload = {
                 id: product.id,
                 title: product.title,
                 platform: product.platform,
@@ -176,7 +186,16 @@ export default function ProductInfoPanel({ product }) {
                 originalPrice: purchaseMode === 'buy' ? (product.originalPrice || product.buyPrice) : (product.rentPrice * 1.2),
                 image: product.image,
                 deposit: purchaseMode === 'rent' ? 40.00 : 0,
-              });
+              };
+              if (!isAuthenticated) {
+                setIntentAndOpenAuth({
+                  action: 'ADD_TO_CART',
+                  payload: { product: cartItemPayload, quantity: 1 },
+                  redirectTo: window.location.pathname + window.location.search + window.location.hash,
+                });
+                return;
+              }
+              addToCart(cartItemPayload);
               navigate('/cart');
             }}
             className="w-full h-14 rounded-full bg-gaming-cyan hover:bg-gaming-accent text-gaming-black hover:text-white font-bold text-sm tracking-wide shadow-[0_0_20px_rgba(0,229,255,0.3)] hover:shadow-[0_0_25px_rgba(0,136,255,0.4)] transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer"
@@ -189,8 +208,20 @@ export default function ProductInfoPanel({ product }) {
           <div className="flex items-center gap-3">
             <button
               onClick={() => {
+                const buyPayload = {
+                  id: product.id,
+                  title: product.title,
+                  platform: product.platform,
+                  mode: purchaseMode,
+                  price: purchaseMode === 'buy' ? product.buyPrice : product.rentPrice,
+                  image: product.image,
+                };
                 if (!isAuthenticated) {
-                  openAuthModal('login', '/checkout');
+                  setIntentAndOpenAuth({
+                    action: 'BUY_NOW',
+                    payload: { product: buyPayload, quantity: 1 },
+                    redirectTo: '/checkout',
+                  });
                   return;
                 }
                 navigate('/checkout');

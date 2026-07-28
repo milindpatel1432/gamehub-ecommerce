@@ -10,14 +10,18 @@ export default function ProductCard({ product }) {
   const navigate = useNavigate();
   const { isWishlisted, addToWishlist, removeFromWishlist } = useWishlist();
   const { addToCart } = useCart();
-  const { isAuthenticated, openAuthModal } = useAuth();
+  const { isAuthenticated, openAuthModal, setIntentAndOpenAuth } = useAuth();
 
   const isFav = isWishlisted(product.id);
 
   const handleWishlistToggle = (e) => {
     e.stopPropagation();
     if (!isAuthenticated) {
-      openAuthModal('login');
+      setIntentAndOpenAuth({
+        action: 'ADD_TO_WISHLIST',
+        payload: { product },
+        redirectTo: window.location.pathname + window.location.search + window.location.hash,
+      });
       return;
     }
     if (isFav) {
@@ -128,11 +132,7 @@ export default function ProductCard({ product }) {
           <div className="flex flex-col gap-2">
             <button
               onClick={() => {
-                if (!isAuthenticated) {
-                  openAuthModal('login');
-                  return;
-                }
-                addToCart({
+                const itemPayload = {
                   id: product.id,
                   title: product.title,
                   platform: product.platform,
@@ -140,7 +140,16 @@ export default function ProductCard({ product }) {
                   rentPrice: product.rentPrice,
                   image: product.image,
                   category: product.category,
-                });
+                };
+                if (!isAuthenticated) {
+                  setIntentAndOpenAuth({
+                    action: 'ADD_TO_CART',
+                    payload: { product: itemPayload, quantity: 1 },
+                    redirectTo: window.location.pathname + window.location.search + window.location.hash,
+                  });
+                  return;
+                }
+                addToCart(itemPayload);
                 navigate('/cart');
               }}
               className="w-full h-10 rounded-xl bg-gaming-accent hover:bg-gaming-cyan text-white hover:text-gaming-black font-semibold text-xs flex items-center justify-center gap-2 transition-all duration-300 cursor-pointer"
