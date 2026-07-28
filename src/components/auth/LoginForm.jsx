@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { Mail, ArrowRight, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
@@ -10,7 +10,8 @@ import { EMAIL_VALIDATION, PASSWORD_VALIDATION } from '../../utils/validation';
 
 export default function LoginForm({ onSuccess, onSwitchTab }) {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const location = useLocation();
+  const { login, authRedirectUrl, clearAuthRedirectUrl } = useAuth();
   const [serverError, setServerError] = useState('');
 
   const {
@@ -39,10 +40,44 @@ export default function LoginForm({ onSuccess, onSwitchTab }) {
       if (onSuccess) {
         onSuccess();
       }
+
       if (res.user?.role === 'admin') {
-        navigate('/admin');
+        navigate('/admin', { replace: true });
+        return;
+      }
+
+      // Determine redirect destination
+      const fromState = location.state?.from;
+      let targetPath = null;
+
+      if (typeof fromState === 'string') {
+        targetPath = fromState;
+      } else if (fromState && typeof fromState === 'object' && fromState.pathname) {
+        targetPath = fromState.pathname + (fromState.search || '') + (fromState.hash || '');
+      }
+
+      if (!targetPath) {
+        const searchParams = new URLSearchParams(location.search);
+        const queryRedirect = searchParams.get('redirect');
+        if (queryRedirect) {
+          targetPath = queryRedirect;
+        }
+      }
+
+      if (!targetPath && authRedirectUrl) {
+        targetPath = authRedirectUrl;
+      }
+
+      clearAuthRedirectUrl();
+
+      const isAuthPage = ['/login', '/register'].includes(location.pathname);
+
+      if (targetPath && targetPath !== '/login' && targetPath !== '/register') {
+        navigate(targetPath, { replace: true });
+      } else if (!isAuthPage) {
+        // User logged in via modal while browsing a regular page; remain on current page
       } else {
-        navigate('/dashboard');
+        navigate('/dashboard', { replace: true });
       }
     } else {
       const errMsg = res.error || 'Invalid email or password';

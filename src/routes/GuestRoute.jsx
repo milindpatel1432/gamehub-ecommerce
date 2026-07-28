@@ -1,8 +1,9 @@
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export default function GuestRoute({ children }) {
-  const { isAuthenticated, loading, user } = useAuth();
+  const { isAuthenticated, loading, user, authRedirectUrl } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -16,6 +17,23 @@ export default function GuestRoute({ children }) {
     if (user?.role === 'admin') {
       return <Navigate to="/admin" replace />;
     }
+    const fromState = location.state?.from;
+    let target = null;
+
+    if (typeof fromState === 'string') {
+      target = fromState;
+    } else if (fromState && typeof fromState === 'object' && fromState.pathname) {
+      target = fromState.pathname + (fromState.search || '') + (fromState.hash || '');
+    }
+
+    if (!target && authRedirectUrl) {
+      target = authRedirectUrl;
+    }
+
+    if (target && target !== '/login' && target !== '/register') {
+      return <Navigate to={target} replace />;
+    }
+
     return <Navigate to="/dashboard" replace />;
   }
 

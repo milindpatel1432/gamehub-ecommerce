@@ -9,14 +9,27 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalTab, setAuthModalTab] = useState('login'); // 'login' | 'register'
+  const [authRedirectUrl, setAuthRedirectUrl] = useState(null);
 
-  const openAuthModal = (tab = 'login') => {
+  const openAuthModal = (tab = 'login', redirectUrl = null) => {
     setAuthModalTab(tab);
+    if (redirectUrl) {
+      setAuthRedirectUrl(redirectUrl);
+    } else if (typeof window !== 'undefined') {
+      const currentPath = window.location.pathname + window.location.search + window.location.hash;
+      if (!['/login', '/register', '/forgot-password'].includes(window.location.pathname)) {
+        setAuthRedirectUrl(currentPath);
+      }
+    }
     setIsAuthModalOpen(true);
   };
 
   const closeAuthModal = () => {
     setIsAuthModalOpen(false);
+  };
+
+  const clearAuthRedirectUrl = () => {
+    setAuthRedirectUrl(null);
   };
 
   // ==========================
@@ -143,6 +156,9 @@ export function AuthProvider({ children }) {
         openAuthModal,
         closeAuthModal,
         setAuthModalTab,
+        authRedirectUrl,
+        setAuthRedirectUrl,
+        clearAuthRedirectUrl,
       }}
     >
       {children}

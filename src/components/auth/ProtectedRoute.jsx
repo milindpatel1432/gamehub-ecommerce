@@ -1,15 +1,17 @@
 import { useEffect } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 export default function ProtectedRoute({ children, adminOnly = false }) {
   const { isAuthenticated, loading, user, openAuthModal } = useAuth();
+  const location = useLocation();
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
-      openAuthModal('login');
+      const targetUrl = location.pathname + location.search + location.hash;
+      openAuthModal('login', targetUrl);
     }
-  }, [loading, isAuthenticated, openAuthModal]);
+  }, [loading, isAuthenticated, openAuthModal, location]);
 
   if (loading) {
     return (
@@ -20,8 +22,8 @@ export default function ProtectedRoute({ children, adminOnly = false }) {
   }
 
   if (!isAuthenticated) {
-    // Open Auth Popup Modal and redirect to home instead of full login page
-    return <Navigate to="/" replace />;
+    // Open Auth Popup Modal and preserve requested target in navigation state
+    return <Navigate to="/" state={{ from: location }} replace />;
   }
 
   if (adminOnly && user?.role !== 'admin') {

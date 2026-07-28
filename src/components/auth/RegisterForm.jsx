@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { Mail, User, Phone, ArrowRight, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
@@ -17,6 +17,7 @@ import {
 
 export default function RegisterForm({ onSuccess, onSwitchTab }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const { register: authRegister } = useAuth();
   const [serverError, setServerError] = useState('');
 
@@ -85,7 +86,7 @@ export default function RegisterForm({ onSuccess, onSwitchTab }) {
       if (onSuccess) {
         onSuccess();
       } else {
-        navigate('/login');
+        navigate('/login', { state: location.state });
       }
     } else {
       const errMsg = res.error || 'Registration failed';

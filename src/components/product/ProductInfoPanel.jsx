@@ -190,7 +190,7 @@ export default function ProductInfoPanel({ product }) {
             <button
               onClick={() => {
                 if (!isAuthenticated) {
-                  openAuthModal('login');
+                  openAuthModal('login', '/checkout');
                   return;
                 }
                 navigate('/checkout');

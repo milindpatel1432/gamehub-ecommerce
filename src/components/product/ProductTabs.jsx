@@ -8,7 +8,7 @@ import { successToast, errorToast } from '../../utils/toast';
 import LoadingSpinner from '../ui/LoadingSpinner';
 
 export default function ProductTabs({ product, onRatingChange }) {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, openAuthModal } = useAuth();
   const [activeTab, setActiveTab] = useState('description');
   const [reviews, setReviews] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -247,7 +247,7 @@ export default function ProductTabs({ product, onRatingChange }) {
                   ) : null
                 ) : (
                   <p className="text-xs text-slate-500">
-                    Please <Link to="/login" className="text-gaming-cyan hover:underline">log in</Link> to review this product.
+                    Please <button type="button" onClick={() => openAuthModal('login')} className="text-gaming-cyan hover:underline font-semibold cursor-pointer">log in</button> to review this product.
                   </p>
                 )}
 

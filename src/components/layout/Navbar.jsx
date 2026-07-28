@@ -40,14 +40,14 @@ export default function Navbar() {
   const handleWishlistClick = (e) => {
     if (!isAuthenticated) {
       e.preventDefault();
-      openAuthModal('login');
+      openAuthModal('login', '/wishlist');
     }
   };
 
   const handleCartClick = (e) => {
     if (!isAuthenticated) {
       e.preventDefault();
-      openAuthModal('login');
+      openAuthModal('login', '/cart');
     }
   };
 
