@@ -5,8 +5,26 @@ import { LOCAL_STORAGE_KEYS } from '../config/constants';
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(() => {
+    try {
+      const token = localStorage.getItem(LOCAL_STORAGE_KEYS.AUTH_TOKEN);
+      const cachedUserStr = localStorage.getItem(LOCAL_STORAGE_KEYS.USER_DATA);
+      if (token && cachedUserStr) {
+        return JSON.parse(cachedUserStr);
+      }
+    } catch (_e) {}
+    return null;
+  });
+  const [loading, setLoading] = useState(() => {
+    try {
+      const token = localStorage.getItem(LOCAL_STORAGE_KEYS.AUTH_TOKEN);
+      const cachedUserStr = localStorage.getItem(LOCAL_STORAGE_KEYS.USER_DATA);
+      if (token && cachedUserStr) {
+        return false;
+      }
+    } catch (_e) {}
+    return true;
+  });
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalTab, setAuthModalTab] = useState('login'); // 'login' | 'register'
   const [authRedirectUrl, setAuthRedirectUrl] = useState(null);
