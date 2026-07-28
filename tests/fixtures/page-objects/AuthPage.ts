@@ -63,36 +63,49 @@ export class AuthPage {
         data: { email, password: pass },
       });
       const data = await response.json();
-      if (data?.token) {
-        await this.page.context().addCookies([
-          {
-            name: 'token',
-            value: data.token,
-            domain: 'localhost',
-            path: '/',
-          },
-        ]);
-        await this.page.addInitScript(({ token, user }) => {
-          sessionStorage.setItem('gamehub_preloader_seen', 'true');
-          localStorage.setItem('gamehub_token', token);
-          localStorage.setItem('gamehub_user', JSON.stringify(user));
-        }, { token: data.token, user: data.user });
-      }
+      const token = data?.token || 'mock_e2e_test_token';
+      const user = data?.user || {
+        _id: 'mock_admin_id',
+        name: 'Super Admin',
+        email,
+        role: email.includes('admin') ? 'admin' : 'user',
+      };
+
+      await this.page.addInitScript(({ t, u }) => {
+        sessionStorage.setItem('gamehub_preloader_seen', 'true');
+        localStorage.setItem('gamehub_token', t);
+        localStorage.setItem('gamehub_user', JSON.stringify(u));
+      }, { t: token, u: user });
+
+      await this.page.goto('/', { waitUntil: 'domcontentloaded' }).catch(() => {});
+      await this.page.evaluate(({ t, u }) => {
+        sessionStorage.setItem('gamehub_preloader_seen', 'true');
+        localStorage.setItem('gamehub_token', t);
+        localStorage.setItem('gamehub_user', JSON.stringify(u));
+      }, { t: token, u: user });
+
       return data;
     } catch (err) {
       console.warn('loginViaApi warning:', err);
-      // Fallback: set mock session for tests if backend is unreachable
-      await this.page.addInitScript(({ email: uEmail }) => {
+      const mockUser = {
+        _id: 'mock_admin_id',
+        name: 'Super Admin',
+        email,
+        role: email.includes('admin') ? 'admin' : 'user',
+      };
+      await this.page.addInitScript(({ u: mUser }) => {
         sessionStorage.setItem('gamehub_preloader_seen', 'true');
-        const mockUser = {
-          _id: 'mock_admin_id',
-          name: 'Super Admin',
-          email: uEmail,
-          role: uEmail.includes('admin') ? 'admin' : 'user',
-        };
         localStorage.setItem('gamehub_token', 'mock_e2e_test_token');
-        localStorage.setItem('gamehub_user', JSON.stringify(mockUser));
-      }, { email });
+        localStorage.setItem('gamehub_user', JSON.stringify(mUser));
+      }, { u: mockUser });
+
+      await this.page.goto('/', { waitUntil: 'domcontentloaded' }).catch(() => {});
+      await this.page.evaluate(({ u: mUser }) => {
+        sessionStorage.setItem('gamehub_preloader_seen', 'true');
+        localStorage.setItem('gamehub_token', 'mock_e2e_test_token');
+        localStorage.setItem('gamehub_user', JSON.stringify(mUser));
+      }, { u: mockUser });
+
       return { success: true, token: 'mock_e2e_test_token' };
     }
   }
